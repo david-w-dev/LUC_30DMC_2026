@@ -5,7 +5,7 @@ import {
   blurFragSrc,
   vectorCompositeFragSrc,
   passthroughFragmentSource,
-} from "./shaders.js?v=20261030-radar";
+} from "./shaders.js?v=20261030-zoomfix";
 
 /*
 MIT License
@@ -311,6 +311,7 @@ export function createShaderOverlay(gameCanvas, options = {}) {
   }
 
   const captures = [];
+  let historyInvalid = false;
   let running = true;
   let rafId = null;
 
@@ -346,6 +347,18 @@ export function createShaderOverlay(gameCanvas, options = {}) {
     if (activeShaderName === "vector") {
       ensurePersistFBOs(overlay.width, overlay.height);
       ensureBloomFBOs(overlay.width, overlay.height);
+      if (historyInvalid) {
+        // Clear both sides: either can be sampled on the next ping-pong pass.
+        for (const buffer of [persistA, persistB]) {
+          gl.bindFramebuffer(gl.FRAMEBUFFER, buffer.fb);
+          gl.viewport(0, 0, persistW, persistH);
+          gl.clearColor(0, 0, 0, 1);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+        }
+        pingPong = 0;
+        frameMotionX = frameMotionY = frameLogZoom = 0;
+        historyInvalid = false;
+      }
 
       // Pass 1: Bloom downsample + threshold
       activateProgram(programs.bloomDownsample);
@@ -475,6 +488,7 @@ export function createShaderOverlay(gameCanvas, options = {}) {
   return {
     /** The overlay canvas element */
     overlay,
+    clearHistory() { historyInvalid = true; },
     capture() {
       return new Promise((resolve, reject) => {
         const request = {resolve: value => { clearTimeout(timeout); resolve(value); }};

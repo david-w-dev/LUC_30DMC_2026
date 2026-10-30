@@ -123,3 +123,18 @@ test("a searched destination can label a feature outside the old curated list", 
   f.renderer.draw();
   assert.ok(f.text.some(t => t.value === "SELECTED STREET"));
 });
+
+test('zooming in and back out restores the original labels and hides building detail', () => {
+  const f=fixture(0.016);
+  f.renderer.draw();
+  const initial=structuredClone(f.text);
+  f.text.length=0;
+  f.state.scale=0.5;
+  f.renderer.draw();
+  assert.ok(f.fills.includes('#f2c552'));
+  f.text.length=0; f.fills.length=0;
+  f.state.scale=0.016;
+  f.renderer.draw();
+  assert.deepEqual(f.text,initial);
+  assert.ok(!f.fills.includes('#f2c552'));
+});

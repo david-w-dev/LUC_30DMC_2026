@@ -19,12 +19,14 @@ export const zoomLevel = (state) => Math.max(1, Math.min(10,
 
 export function createCamera(state, draw) {
   let motionId = 0;
+  let zoomHistoryDirty = false;
   function animateTo(x, y, z) {
     cancelAnimationFrame(motionId);
     const startX = state.offsetX,
       startY = state.offsetY,
       startZ = state.scale,
       start = performance.now();
+    zoomHistoryDirty ||= z !== startZ;
     const duration = 1800;
     const tick = (now) => {
       const t = Math.min(1, (now - start) / duration);
@@ -34,11 +36,21 @@ export function createCamera(state, draw) {
         z === startZ ? eased : (state.scale - startZ) / (z - startZ);
       state.offsetX = startX + (x - startX) * zoomFraction;
       state.offsetY = startY + (y - startY) * zoomFraction;
+      if (t === 1) {
+        // Finish at the exact requested view, independent of floating-point interpolation.
+        state.scale = z; state.offsetX = x; state.offsetY = y;
+        if (zoomHistoryDirty) state.display?.clearHistory();
+        zoomHistoryDirty = false;
+      }
       draw();
       if (t < 1) motionId = requestAnimationFrame(tick);
     };
     motionId = requestAnimationFrame(tick);
   }
 
-  return { animateTo, cancel: () => cancelAnimationFrame(motionId) };
+  return { animateTo, cancel() {
+    cancelAnimationFrame(motionId);
+    if (zoomHistoryDirty) state.display?.clearHistory();
+    zoomHistoryDirty = false;
+  } };
 }

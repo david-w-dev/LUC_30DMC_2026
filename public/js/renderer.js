@@ -1,4 +1,4 @@
-import { zoomLevel } from "./camera.js?v=20261030-radar";
+import { zoomLevel } from "./camera.js?v=20261030-zoomfix";
 
 export function createRenderer({
   canvas,

@@ -1,6 +1,6 @@
-import { findTargets, normalize as norm } from "./search.js?v=20261030-radar";
+import { findTargets, normalize as norm } from "./search.js?v=20261030-zoomfix";
 
-import { zoomScale } from "./camera.js?v=20261030-radar";
+import { zoomScale } from "./camera.js?v=20261030-zoomfix";
 
 export function createTerminal({
   canvas,

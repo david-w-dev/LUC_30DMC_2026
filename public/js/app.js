@@ -1,10 +1,10 @@
-import { createRadar } from "./radar.js?v=20261030-radar";
-import { createMapExport } from "./export-map.js?v=20261030-radar";
-import { loadMapData } from "./map-data.js?v=20261030-radar";
-import { createRenderer } from "./renderer.js?v=20261030-radar";
-import { createCamera, fitOverview } from "./camera.js?v=20261030-radar";
-import { createTerminal } from "./terminal.js?v=20261030-radar";
-import { createShaderOverlay } from "./crt-overlay.js?v=20261030-radar";
+import { createRadar } from "./radar.js?v=20261030-zoomfix";
+import { createMapExport } from "./export-map.js?v=20261030-zoomfix";
+import { loadMapData } from "./map-data.js?v=20261030-zoomfix";
+import { createRenderer } from "./renderer.js?v=20261030-zoomfix";
+import { createCamera, fitOverview } from "./camera.js?v=20261030-zoomfix";
+import { createTerminal } from "./terminal.js?v=20261030-zoomfix";
+import { createShaderOverlay } from "./crt-overlay.js?v=20261030-zoomfix";
 
 const canvas = document.querySelector("#map-canvas");
 const screen = document.querySelector("#map-screen");
@@ -68,6 +68,7 @@ try {
     const nextWidth = screen.clientWidth, nextHeight = screen.clientHeight;
     if (width !== nextWidth || height !== nextHeight) {
       camera.cancel();
+      state.display?.clearHistory();
       radar.cancel();
       state.suggestions = []; state.selectedIndex = -1;
       const overview = fitOverview(regionalData.bounds, mapData.origin, nextWidth, nextHeight);

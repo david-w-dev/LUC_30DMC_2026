@@ -14,3 +14,31 @@ test('overview fits the bounds on wide, tall and small screens', () => {
     assert.equal(zoomScale(state, 10), state.baseScale * 100);
   }
 });
+
+test('zoom round trips end at the exact view and invalidate history only on completion', async () => {
+  const {createCamera} = await import('../public/js/camera.js');
+  const originalRequest = globalThis.requestAnimationFrame, originalCancel = globalThis.cancelAnimationFrame;
+  let tick, cleared=0;
+  globalThis.requestAnimationFrame = fn => { tick=fn; return 1; };
+  globalThis.cancelAnimationFrame = () => {};
+  try {
+    const state={scale:0.03,offsetX:23,offsetY:-41,display:{clearHistory(){cleared++;}}};
+    const camera=createCamera(state,()=>{});
+    camera.animateTo(2300,-4100,3);
+    tick(performance.now()+100);
+    assert.equal(cleared,0);
+    tick(performance.now()+2000);
+    assert.deepEqual([state.scale,state.offsetX,state.offsetY],[3,2300,-4100]);
+    assert.equal(cleared,1);
+    camera.animateTo(23,-41,0.03);
+    tick(performance.now()+2000);
+    assert.deepEqual([state.scale,state.offsetX,state.offsetY],[0.03,23,-41]);
+    assert.equal(cleared,2);
+    camera.animateTo(33,-51,0.03);
+    tick(performance.now()+2000);
+    assert.equal(cleared,2,'ordinary pan retains sustain');
+    camera.animateTo(330,-510,0.3);
+    camera.cancel();
+    assert.equal(cleared,3,'interrupted zoom also clears stale history');
+  } finally {globalThis.requestAnimationFrame=originalRequest;globalThis.cancelAnimationFrame=originalCancel;}
+});
