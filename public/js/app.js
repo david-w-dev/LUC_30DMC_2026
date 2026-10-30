@@ -1,12 +1,12 @@
-import { connectMobileTerminal } from "./mobile-terminal.js?v=20261030-mobile";
-import { createDetailLoader } from "./detail-loader.js?v=20261030-mobile";
-import { createRadar } from "./radar.js?v=20261030-mobile";
-import { createMapExport } from "./export-map.js?v=20261030-mobile";
-import { loadMapData } from "./map-data.js?v=20261030-mobile";
-import { createRenderer } from "./renderer.js?v=20261030-mobile";
-import { createCamera, fitOverview } from "./camera.js?v=20261030-mobile";
-import { createTerminal } from "./terminal.js?v=20261030-mobile";
-import { createShaderOverlay } from "./crt-overlay.js?v=20261030-mobile";
+import { connectMobileTerminal } from "./mobile-terminal.js?v=20261030-grid";
+import { createDetailLoader } from "./detail-loader.js?v=20261030-grid";
+import { createRadar } from "./radar.js?v=20261030-grid";
+import { createMapExport } from "./export-map.js?v=20261030-grid";
+import { loadMapData } from "./map-data.js?v=20261030-grid";
+import { createRenderer } from "./renderer.js?v=20261030-grid";
+import { createCamera, fitOverview } from "./camera.js?v=20261030-grid";
+import { createTerminal } from "./terminal.js?v=20261030-grid";
+import { createShaderOverlay } from "./crt-overlay.js?v=20261030-grid";
 
 const canvas = document.querySelector("#map-canvas");
 const screen = document.querySelector("#map-screen");
@@ -46,6 +46,7 @@ try {
     state.offsetY = -cardiff.point[1] * state.scale - 38;
     state.activeLabel = cardiff.name;
   }
+  mapData.coverageCouncils = detailManifest?.councils || [];
   const renderer = createRenderer({
     canvas,
     screen,

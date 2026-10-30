@@ -54,10 +54,10 @@ export async function loadDataset(path) {
 
 export async function loadMapData() {
   const [mapData, regionalData, poiData, detailManifest] = await Promise.all([
-    loadDataset("../data/cardiff-map.json?v=20261030-mobile"),
-    loadDataset("../data/regional-map.json?v=20261030-mobile"),
-    readMapResource(new URL("../data/pois.json?v=20261030-mobile", import.meta.url)),
-    readMapResource(new URL("../data/detail-manifest.json?v=20261030-mobile", import.meta.url)),
+    loadDataset("../data/cardiff-map.json?v=20261030-grid"),
+    loadDataset("../data/regional-map.json?v=20261030-grid"),
+    readMapResource(new URL("../data/pois.json?v=20261030-grid", import.meta.url)),
+    readMapResource(new URL("../data/detail-manifest.json?v=20261030-grid", import.meta.url)),
   ]);
   mapData.pois = poiData.pois;
   mapData.roads = mapData.roads.map(([roadClass, points]) => ({

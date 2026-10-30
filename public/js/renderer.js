@@ -1,4 +1,4 @@
-import { zoomLevel } from "./camera.js?v=20261030-mobile";
+import { zoomLevel } from "./camera.js?v=20261030-grid";
 
 export function createRenderer({
   canvas,
@@ -35,6 +35,38 @@ export function createRenderer({
       y1 = Math.max(y1, y);
     }
     pathBounds.set(points, [x0, y0, x1, y1]);
+  }
+  const coverageRings = (mapData.coverageCouncils || []).flatMap(council =>
+    council.geometry.coordinates.flatMap(polygon => polygon.map(ring =>
+      ring.map(([lon, lat]) => [(lon - mapData.origin[0]) * 69400,
+        (mapData.origin[1] - lat) * 111320]))));
+  function drawGrid() {
+    if (!coverageRings.length) return;
+    ctx.save();
+    ctx.beginPath();
+    for (const ring of coverageRings) {
+      if (!ring.length) continue;
+      ctx.moveTo(...ring[0]);
+      for (let i = 1; i < ring.length; i++) ctx.lineTo(...ring[i]);
+      ctx.closePath();
+    }
+    ctx.clip('evenodd');
+    // Keep the grid legible while zooming, using stable metric intervals.
+    const target = 90 / state.scale;
+    const magnitude = 10 ** Math.floor(Math.log10(target));
+    const step = [1, 2, 5, 10].find(value => value * magnitude >= target) * magnitude;
+    const [x0, y0, x1, y1] = visibleRect;
+    ctx.beginPath();
+    for (let x = Math.ceil(x0 / step) * step; x <= x1; x += step) {
+      ctx.moveTo(x, y0); ctx.lineTo(x, y1);
+    }
+    for (let y = Math.ceil(y0 / step) * step; y <= y1; y += step) {
+      ctx.moveTo(x0, y); ctx.lineTo(x1, y);
+    }
+    ctx.strokeStyle = '#18303a';
+    ctx.lineWidth = 0.6 / state.scale;
+    ctx.stroke();
+    ctx.restore();
   }
   let visibleRect = [-Infinity, -Infinity, Infinity, Infinity];
   function visible(points) {
@@ -171,6 +203,7 @@ export function createRenderer({
     ctx.save();
     ctx.translate(w / 2 + state.offsetX, h / 2 + state.offsetY);
     ctx.scale(state.scale, state.scale);
+    drawGrid();
     refreshDetail();
     detailView = !!(mapData.fullCoverage && zoomLevel(state)>=3 && mapData.detailTiles?.length);
     detailIncomplete = !!(mapData.detailLoading || mapData.detailError);
