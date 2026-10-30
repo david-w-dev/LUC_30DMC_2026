@@ -1,4 +1,4 @@
-import { zoomLevel } from "./camera.js";
+import { zoomLevel } from "./camera.js?v=20261030";
 
 export function createRenderer({
   canvas,
