@@ -28,3 +28,26 @@ noscript {
   color: #82bad0;
   font: 14px monospace;
 }
+
+#mobile-terminal { display: none; }
+@media (pointer: coarse), (max-width: 600px) {
+  #map-screen { height: calc(100dvh - 56px - env(safe-area-inset-bottom)); overflow: visible; }
+  #mobile-terminal {
+    position: absolute;
+    top: 100%; left: 0; right: 0;
+    display: flex; gap: 8px;
+    box-sizing: border-box;
+    min-height: 56px;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    background: #000; border-top: 1px solid #417890;
+    z-index: 10; touch-action: manipulation;
+  }
+  #mobile-command, #mobile-terminal button {
+    min-width: 0; border: 1px solid #417890; border-radius: 0;
+    background: #07141b; color: #c4edf7; font: 16px monospace;
+    padding: 8px; box-sizing: border-box;
+  }
+  #mobile-command { flex: 1; width: 100%; }
+  #mobile-terminal button { flex: 0 0 auto; }
+  #mobile-command:focus { outline: 1px solid #82bad0; }
+}

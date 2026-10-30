@@ -1,11 +1,12 @@
-import { createDetailLoader } from "./detail-loader.js?v=20261030-ui125";
-import { createRadar } from "./radar.js?v=20261030-ui125";
-import { createMapExport } from "./export-map.js?v=20261030-ui125";
-import { loadMapData } from "./map-data.js?v=20261030-ui125";
-import { createRenderer } from "./renderer.js?v=20261030-ui125";
-import { createCamera, fitOverview } from "./camera.js?v=20261030-ui125";
-import { createTerminal } from "./terminal.js?v=20261030-ui125";
-import { createShaderOverlay } from "./crt-overlay.js?v=20261030-ui125";
+import { connectMobileTerminal } from "./mobile-terminal.js?v=20261030-mobile";
+import { createDetailLoader } from "./detail-loader.js?v=20261030-mobile";
+import { createRadar } from "./radar.js?v=20261030-mobile";
+import { createMapExport } from "./export-map.js?v=20261030-mobile";
+import { loadMapData } from "./map-data.js?v=20261030-mobile";
+import { createRenderer } from "./renderer.js?v=20261030-mobile";
+import { createCamera, fitOverview } from "./camera.js?v=20261030-mobile";
+import { createTerminal } from "./terminal.js?v=20261030-mobile";
+import { createShaderOverlay } from "./crt-overlay.js?v=20261030-mobile";
 
 const canvas = document.querySelector("#map-canvas");
 const screen = document.querySelector("#map-screen");
@@ -67,7 +68,7 @@ try {
   const camera = createCamera(state, draw);
   const radar = createRadar({state, screen, pois: mapData.pois, draw});
   const exportMap = createMapExport({canvas, state, draw});
-  createTerminal({
+  const terminal = createTerminal({
     canvas,
     mapData,
     regionalData,
@@ -76,6 +77,8 @@ try {
     radar, exportMap,
     draw,
   });
+  connectMobileTerminal({form: document.querySelector('#mobile-terminal'),
+    input: document.querySelector('#mobile-command'), state, terminal, draw});
   let width = screen.clientWidth, height = screen.clientHeight;
   const resize = new ResizeObserver(() => {
     const nextWidth = screen.clientWidth, nextHeight = screen.clientHeight;

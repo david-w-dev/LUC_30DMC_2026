@@ -2,11 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content" />
     <meta name="theme-color" content="#000000" />
     <title>LUC Vector Map</title>
-    <link rel="stylesheet" href="./styles.css" />
-    <script type="module" src="./js/app.js?v=20261030-ui125"></script>
+    <link rel="stylesheet" href="./styles.css?v=20261030-mobile" />
+    <script type="module" src="./js/app.js?v=20261030-mobile"></script>
   </head>
   <body>
     <main id="map-screen">
@@ -15,6 +15,10 @@
         tabindex="0"
         aria-label="Cardiff and Vale of Glamorgan vector map. Type move LUC, move Cardiff, zoom 1 through 10, radar cafes, print, or help, then press Enter. Use Up and Down for command history, Tab for completion, and arrows or numbers followed by Enter to select search results."
       ></canvas>
+      <form id="mobile-terminal" aria-label="Map commands">
+        <input id="mobile-command" type="text" aria-label="Map command" placeholder="move Cardiff / zoom 7 / help" maxlength="64" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="send" />
+        <button type="submit">RUN</button>
+      </form>
       <noscript>This map requires JavaScript.</noscript>
     </main>
   </body>

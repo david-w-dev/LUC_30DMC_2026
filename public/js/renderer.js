@@ -1,4 +1,4 @@
-import { zoomLevel } from "./camera.js?v=20261030-ui125";
+import { zoomLevel } from "./camera.js?v=20261030-mobile";
 
 export function createRenderer({
   canvas,
