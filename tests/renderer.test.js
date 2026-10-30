@@ -62,7 +62,7 @@ function fixture(scale = 0.016) {
     regionalData,
     state,
   });
-  return { renderer, text, fills };
+  return { renderer, text, fills, state, targets };
 }
 
 test("crowded names do not overlap and selected destination wins", () => {
@@ -92,4 +92,34 @@ test("Brunel House fills gold at building zoom, with on-screen attribution", () 
   assert.ok(f.text.some((t) => t.value === "LUC"));
   assert.ok(f.text.some((t) => t.value.includes("OPENSTREETMAP CONTRIBUTORS")));
   assert.ok(!f.text.some((t) => t.value.includes("1966 STUDY")));
+});
+
+
+test("regional places outside the old shortlist appear across the viewport", () => {
+  const f = fixture(0.05);
+  f.targets.push(
+    {name: "Western Village", category: "place", id: "place/west", point: [-6000, -1500]},
+    {name: "Eastern Village", category: "place", id: "place/east", point: [6000, -1500]},
+  );
+  f.renderer.draw();
+  assert.ok(f.text.some(t => t.value === "WESTERN VILLAGE"));
+  assert.ok(f.text.some(t => t.value === "EASTERN VILLAGE"));
+});
+
+test("label eligibility follows fitted zoom rather than a fixed world scale", () => {
+  for (const baseScale of [0.008, 0.016, 0.03]) {
+    const f = fixture(baseScale * 100 ** (3 / 9));
+    f.state.baseScale = baseScale;
+    f.targets.push({name: "Outside Cardiff", category: "place", id: "place/outer", point: [-240 / f.state.scale, -80 / f.state.scale]});
+    f.renderer.draw();
+    assert.ok(f.text.some(t => t.value === "OUTSIDE CARDIFF"), `base scale ${baseScale}`);
+  }
+});
+
+test("a searched destination can label a feature outside the old curated list", () => {
+  const f = fixture();
+  f.state.activeLabel = "Selected Street";
+  f.targets.push({name: "Selected Street", category: "street", id: "way/selected", point: [-2000, -1000]});
+  f.renderer.draw();
+  assert.ok(f.text.some(t => t.value === "SELECTED STREET"));
 });

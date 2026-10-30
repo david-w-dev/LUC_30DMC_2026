@@ -1,8 +1,8 @@
-import { loadMapData } from "./map-data.js?v=20261030";
-import { createRenderer } from "./renderer.js?v=20261030";
-import { createCamera, fitOverview } from "./camera.js?v=20261030";
-import { createTerminal } from "./terminal.js?v=20261030";
-import { createShaderOverlay } from "./crt-overlay.js?v=20261030";
+import { loadMapData } from "./map-data.js?v=20261030-labels";
+import { createRenderer } from "./renderer.js?v=20261030-labels";
+import { createCamera, fitOverview } from "./camera.js?v=20261030-labels";
+import { createTerminal } from "./terminal.js?v=20261030-labels";
+import { createShaderOverlay } from "./crt-overlay.js?v=20261030-labels";
 
 const canvas = document.querySelector("#map-canvas");
 const screen = document.querySelector("#map-screen");

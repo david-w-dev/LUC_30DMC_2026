@@ -5,7 +5,7 @@ import {
   blurFragSrc,
   vectorCompositeFragSrc,
   passthroughFragmentSource,
-} from "./shaders.js?v=20261030";
+} from "./shaders.js?v=20261030-labels";
 
 /*
 MIT License

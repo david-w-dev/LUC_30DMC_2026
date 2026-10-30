@@ -1,4 +1,4 @@
-import { zoomLevel } from "./camera.js?v=20261030";
+import { zoomLevel } from "./camera.js?v=20261030-labels";
 
 export function createRenderer({
   canvas,
@@ -11,18 +11,8 @@ export function createRenderer({
   let lastDrawOffsetX = state.offsetX,
     lastDrawOffsetY = state.offsetY,
     lastDrawScale = state.scale;
-  const labels = mapData.targets.filter(
-    (t) =>
-      regionalData.labels.includes(t.name) ||
-      (t.category === "place" && t.id.startsWith("node/")) ||
-      [
-        "Cardiff Castle",
-        "Brunel House",
-        "Principality Stadium",
-        "Bute Park",
-        "Cardiff University - Main Building",
-      ].includes(t.name),
-  );
+  const labels = mapData.targets;
+  const regionalNames = new Set(regionalData.labels);
   const pathBounds = new WeakMap();
   for (const points of [
     ...mapData.roads.map((r) => r.points),
@@ -197,7 +187,10 @@ export function createRenderer({
       "Rhoose",
       "Rogerstone",
     ]);
-    const labelLimit = state.scale < 0.04 ? 8 : state.scale < 0.12 ? 12 : 20;
+    const panelHeight = state.suggestions.length ? 94 + state.suggestions.length * 16 : 84;
+    const mapBottom = h - panelHeight - 26;
+    const labelLimit = Math.max(8, Math.min(80,
+      Math.floor(w * Math.max(1, mapBottom - 30) / (level < 3 ? 26000 : 16000))));
     const occupied = [
       [0, 0, 270, 30],
       [w - 151, 0, w, 115],
@@ -215,15 +208,12 @@ export function createRenderer({
         const x = w / 2 + state.offsetX + label.point[0] * state.scale,
           y = h / 2 + state.offsetY + label.point[1] * state.scale;
         const threshold =
-          label.name === state.activeLabel
-            ? 0
-            : majorPlaces.has(label.name)
-              ? 0.016
-              : regionalData.labels.includes(label.name)
-                ? 0.035
-                : label.category === "place"
-                  ? 0.11
-                  : 0.4;
+          label.name === state.activeLabel ? 0
+            : majorPlaces.has(label.name) ? 1
+            : label.category === "place"
+              ? (label.id.startsWith("node/") ? 3 : regionalNames.has(label.name) ? 1.5 : 2.5)
+              : label.category === "landmark" ? 5
+              : label.category === "street" ? 7 : 9;
         return {
           label,
           x,
@@ -234,16 +224,16 @@ export function createRenderer({
               ? 0
               : majorPlaces.has(label.name)
                 ? 1
-                : 2,
+                : label.category === "place" ? 2 : label.category === "landmark" ? 3 : 4,
         };
       })
       .filter(
         (v) =>
-          state.scale >= v.threshold &&
+          level >= v.threshold &&
           v.x > 12 &&
           v.x < w - 12 &&
           v.y > 30 &&
-          v.y < h - 90,
+          v.y < mapBottom,
       )
       .sort(
         (a, b) =>
@@ -272,9 +262,7 @@ export function createRenderer({
       used.add(label.name);
       labelCount++;
       ctx.globalAlpha =
-        threshold === 0 || threshold === 0.016
-          ? 1
-          : Math.min(1, (state.scale / threshold - 1) * 5);
+        threshold <= 1 ? 1 : Math.min(1, 0.3 + (level - threshold) * 2);
       ctx.fillStyle = "rgba(0,0,0,0.88)";
       ctx.fillRect(x - width / 2 - 4, y - 8, width + 8, 16);
       ctx.fillStyle = "#e3ba7b";
@@ -336,9 +324,7 @@ export function createRenderer({
       "right",
     );
     ctx.textAlign = "left";
-    const panelHeight = state.suggestions.length
-      ? 94 + state.suggestions.length * 16
-      : 84;
+
     ctx.fillStyle = "#000";
     ctx.fillRect(0, h - panelHeight, w, panelHeight);
     ctx.strokeStyle = "#417890";
