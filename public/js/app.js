@@ -35,6 +35,13 @@ try {
   const { mapData, regionalData } = await loadMapData();
   Object.assign(state, fitOverview(regionalData.bounds, mapData.origin,
     screen.clientWidth, screen.clientHeight));
+  const cardiff = mapData.targets.find(target =>
+    target.category === "place" && target.name === "Cardiff");
+  if (cardiff) {
+    state.offsetX = -cardiff.point[0] * state.scale;
+    state.offsetY = -cardiff.point[1] * state.scale - 38;
+    state.activeLabel = cardiff.name;
+  }
   const { draw } = createRenderer({
     canvas,
     screen,
