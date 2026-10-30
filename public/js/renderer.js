@@ -1,3 +1,5 @@
+import { zoomLevel } from "./camera.js";
+
 export function createRenderer({
   canvas,
   screen,
@@ -73,12 +75,11 @@ export function createRenderer({
       secondary.push(road.points);
     else minor.push(road.points);
   }
-  const regionalMajor = [],
-    regionalSecondary = [];
+  const regionalMajor = [], regionalSecondary = [], regionalMinor = [];
   for (const [kind, points] of regionalData.roads) {
     (["motorway", "trunk", "primary", "secondary"].includes(kind)
       ? regionalMajor
-      : regionalSecondary
+      : kind === "tertiary" ? regionalSecondary : regionalMinor
     ).push(points);
   }
   function drawBatch(lines, color, width) {
@@ -99,6 +100,8 @@ export function createRenderer({
       ...(state.scale > 0.12 ? mapData.green : []),
     ]) {
       if (points.length < 4 || !visible(points)) continue;
+      const box = pathBounds.get(points);
+      if ((box[2] - box[0]) * (box[3] - box[1]) * state.scale ** 2 < 250) continue;
       ctx.moveTo(...points[0]);
       for (let i = 1; i < points.length; i++) ctx.lineTo(...points[i]);
       ctx.closePath();
@@ -106,12 +109,13 @@ export function createRenderer({
     ctx.strokeStyle = "#a1d977";
     ctx.lineWidth = 0.8 / state.scale;
     ctx.stroke();
+    if (zoomLevel(state) < 4) return;
     ctx.save();
     ctx.clip();
     ctx.beginPath();
     const y0 = visibleRect[1],
       y1 = visibleRect[3];
-    const spacing = Math.max(32, 3 / state.scale);
+    const spacing = Math.max(32, 10 / state.scale);
     for (
       let x = Math.floor((visibleRect[0] - (y1 - y0)) / spacing) * spacing;
       x < visibleRect[2];
@@ -157,7 +161,9 @@ export function createRenderer({
     drawBatch(regionalData.water, "#66bacb", 1.4 / state.scale);
     if (state.scale > 0.12)
       drawBatch(mapData.water, "#66bacb", 1.8 / state.scale);
-    drawBatch(regionalSecondary, "#b8c2b4", 0.72 / state.scale);
+    const level = zoomLevel(state);
+    if (level >= 3) drawBatch(regionalSecondary, "#b8c2b4", 0.72 / state.scale);
+    if (level >= 5) drawBatch(regionalMinor, "#91aaa1", 0.6 / state.scale);
     drawBatch(regionalMajor, "#ddd8ba", 1.3 / state.scale);
     if (state.scale > 0.12) {
       if (state.scale > 0.42) drawBatch(minor, "#91aaa1", 0.48 / state.scale);
@@ -198,7 +204,7 @@ export function createRenderer({
       [
         0,
         h -
-          (state.suggestions.length ? 76 + state.suggestions.length * 16 : 66) -
+          (state.suggestions.length ? 94 + state.suggestions.length * 16 : 84) -
           26,
         w,
         h,
@@ -319,25 +325,20 @@ export function createRenderer({
       ctx.fillText(value, x, y);
     }
     backedText("© OPENSTREETMAP CONTRIBUTORS / ODbL", 12, 19);
-    backedText("SOUTH WALES  //  OSM EXTRACT", 12, h - 76);
-    const zoomLevel = Math.max(
-      1,
-      Math.min(
-        10,
-        Math.round(1 + (9 * Math.log(state.scale / 0.016)) / Math.log(100)),
-      ),
-    );
+    const titleY = h - (state.suggestions.length ? 94 + state.suggestions.length * 16 : 84) - 10;
+    backedText("SOUTH WALES  //  OSM EXTRACT", 12, titleY);
+    const currentZoomLevel = Math.round(zoomLevel(state));
     ctx.textAlign = "right";
     backedText(
-      "ZOOM " + String(zoomLevel).padStart(2, "0") + " / 10",
+      "ZOOM " + String(currentZoomLevel).padStart(2, "0") + " / 10",
       w - 12,
-      h - 76,
+      titleY,
       "right",
     );
     ctx.textAlign = "left";
     const panelHeight = state.suggestions.length
-      ? 76 + state.suggestions.length * 16
-      : 66;
+      ? 94 + state.suggestions.length * 16
+      : 84;
     ctx.fillStyle = "#000";
     ctx.fillRect(0, h - panelHeight, w, panelHeight);
     ctx.strokeStyle = "#417890";
@@ -362,6 +363,11 @@ export function createRenderer({
         w - 28,
       );
     }
+    ctx.fillStyle = "#6aa9bf";
+    ctx.fillText(state.suggestions.length
+      ? "UP/DOWN OR 1-4: SELECT   ENTER: GO   ESC: CANCEL"
+      : "UP/DOWN: HISTORY   TAB: COMPLETE   ENTER: RUN   HELP: COMMANDS",
+      14, h - 39, w - 28);
     ctx.fillStyle = "#c4edf7";
     ctx.fillText("> " + state.commandText, 14, h - 19, w - 28);
     if (state.cursorVisible) {

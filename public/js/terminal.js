@@ -1,5 +1,7 @@
 import { findTargets, normalize as norm } from "./search.js";
 
+import { zoomScale } from "./camera.js";
+
 export function createTerminal({
   canvas,
   mapData,
@@ -8,6 +10,31 @@ export function createTerminal({
   animateTo,
   draw,
 }) {
+  const history = [];
+  let historyIndex = 0, draft = "", completion = null;
+  function resetCompletion() { completion = null; }
+  function complete() {
+    if (!completion || !completion.values.includes(state.commandText)) {
+      const input = state.commandText.trimStart();
+      let values;
+      const move = input.match(/^move\s+(?:(place|street|landmark|address)\s+)?(.*)$/i);
+      if (move) {
+        const prefix = "move " + (move[1] ? move[1].toLowerCase() + " " : "");
+        values = findTargets(mapData.targets, move[2], move[1]?.toLowerCase())
+          .slice(0, 12).map(({target}) => prefix + target.name);
+        if (!move[2] && !move[1]) values.unshift("move LUC");
+      } else {
+        values = ["move ", "zoom ", "help", ...Array.from({length: 10}, (_, i) => `zoom ${i + 1}`)]
+          .filter(value => value.startsWith(input.toLowerCase()));
+      }
+      completion = { values: [...new Set(values)], index: -1 };
+    }
+    if (completion.values.length) {
+      completion.index = (completion.index + 1) % completion.values.length;
+      state.commandText = completion.values[completion.index];
+    }
+    draw();
+  }
   function moveTo(point, description) {
     state.activeLabel =
       mapData.targets.find(
@@ -21,6 +48,12 @@ export function createTerminal({
   function executeCommand() {
     const input = state.commandText.trim();
     state.commandText = "";
+    resetCompletion();
+    if (!input) { draw(); return; }
+    if (history.at(-1) !== input) history.push(input);
+    if (history.length > 100) history.shift();
+    historyIndex = history.length;
+    draft = "";
     const move = input.match(
       /^move\s+(?:\{\s*location\s*:\s*([^}]+)\s*\}|(?:(place|street|landmark|address|coords|id)\s+)?(.+))$/i,
     );
@@ -78,8 +111,8 @@ export function createTerminal({
           state.selectedIndex = 0;
           state.responseText =
             found.length > 4
-              ? "PRESS NUMBER, THEN ENTER · OR REFINE SEARCH"
-              : "PRESS NUMBER, THEN ENTER";
+              ? `${found.length} MATCHES - SHOWING 4. REFINE WITH MOVE <LONGER NAME>`
+              : `${found.length} MATCHES - SELECT WITH ARROWS OR NUMBER, THEN ENTER`;
         }
       }
     } else if (zoom) {
@@ -90,7 +123,7 @@ export function createTerminal({
         draw();
         return;
       }
-      const next = 0.016 * Math.pow(100, (level - 1) / 9);
+      const next = zoomScale(state, level);
       animateTo(
         (state.offsetX * next) / state.scale,
         (state.offsetY * next) / state.scale,
@@ -121,6 +154,26 @@ export function createTerminal({
   });
   canvas.addEventListener("blur", draw);
   canvas.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === "Tab") {
+      e.preventDefault();
+      complete();
+      return;
+    }
+    resetCompletion();
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      e.preventDefault();
+      const direction = e.key === "ArrowUp" ? -1 : 1;
+      if (!state.commandText && state.suggestions.length) {
+        state.selectedIndex = (state.selectedIndex + direction + state.suggestions.length) % state.suggestions.length;
+      } else {
+        if (historyIndex === history.length) draft = state.commandText;
+        historyIndex = Math.max(0, Math.min(history.length, historyIndex + direction));
+        state.commandText = historyIndex === history.length ? draft : history[historyIndex];
+      }
+      draw();
+      return;
+    }
     if (e.key === "Enter") {
       e.preventDefault();
       if (
@@ -149,6 +202,8 @@ export function createTerminal({
       state.commandText = "";
       state.suggestions = [];
       state.selectedIndex = -1;
+      historyIndex = history.length;
+      draft = "";
       state.responseText = "READY";
       draw();
     } else if (

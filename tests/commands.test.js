@@ -120,3 +120,48 @@ test("structured commands and coordinate bounds work", () => {
   assert.match(f.state.responseText, /OUTSIDE/);
   assert.equal(f.moves.length, 3);
 });
+
+test("history recalls commands and restores an unfinished draft", () => {
+  const f = fixture();
+  f.run("move LUC");
+  f.run("zoom 7");
+  f.state.commandText = "move Car";
+  const key = value => f.handlers.get("keydown")({key: value, preventDefault() {}});
+  key("ArrowUp");
+  assert.equal(f.state.commandText, "zoom 7");
+  key("ArrowUp");
+  assert.equal(f.state.commandText, "move LUC");
+  key("ArrowDown");
+  key("ArrowDown");
+  assert.equal(f.state.commandText, "move Car");
+});
+
+test("Tab completes commands and destinations without navigating", () => {
+  const f = fixture();
+  const key = value => f.handlers.get("keydown")({key: value, preventDefault() {}});
+  f.state.commandText = "mo";
+  key("Tab");
+  assert.equal(f.state.commandText, "move ");
+  f.state.commandText = "move place Ponty";
+  key("Tab");
+  assert.match(f.state.commandText, /^move place Ponty/);
+  assert.notEqual(f.state.commandText, "move place Ponty");
+  assert.equal(f.moves.length, 0);
+  key("Enter");
+  assert.equal(f.moves.length, 1);
+});
+
+test("arrows select matches and Escape cancels them", () => {
+  const f = fixture();
+  f.run("move cast");
+  const key = value => f.handlers.get("keydown")({key: value, preventDefault() {}});
+  assert.match(f.state.responseText, /MATCHES/);
+  key("ArrowDown");
+  assert.equal(f.state.selectedIndex, 1);
+  key("ArrowUp");
+  assert.equal(f.state.selectedIndex, 0);
+  key("Escape");
+  assert.equal(f.state.suggestions.length, 0);
+  key("Enter");
+  assert.equal(f.moves.length, 0);
+});

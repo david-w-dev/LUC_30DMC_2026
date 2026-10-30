@@ -1,6 +1,6 @@
 import { loadMapData } from "./map-data.js";
 import { createRenderer } from "./renderer.js";
-import { createCamera } from "./camera.js";
+import { createCamera, fitOverview } from "./camera.js";
 import { createTerminal } from "./terminal.js";
 import { createShaderOverlay } from "./crt-overlay.js";
 
@@ -33,6 +33,8 @@ function status(message) {
 status("LOADING MAP DATA...");
 try {
   const { mapData, regionalData } = await loadMapData();
+  Object.assign(state, fitOverview(regionalData.bounds, mapData.origin,
+    screen.clientWidth, screen.clientHeight));
   const { draw } = createRenderer({
     canvas,
     screen,
@@ -49,7 +51,21 @@ try {
     animateTo: camera.animateTo,
     draw,
   });
-  const resize = new ResizeObserver(draw);
+  let width = screen.clientWidth, height = screen.clientHeight;
+  const resize = new ResizeObserver(() => {
+    const nextWidth = screen.clientWidth, nextHeight = screen.clientHeight;
+    if (width !== nextWidth || height !== nextHeight) {
+      camera.cancel();
+      const overview = fitOverview(regionalData.bounds, mapData.origin, nextWidth, nextHeight);
+      const ratio = overview.baseScale / state.baseScale;
+      state.scale *= ratio;
+      state.offsetX *= ratio;
+      state.offsetY = (state.offsetY + 38) * ratio - 38;
+      state.baseScale = overview.baseScale;
+      width = nextWidth; height = nextHeight;
+    }
+    draw();
+  });
   resize.observe(screen);
   setInterval(() => {
     state.cursorVisible = !state.cursorVisible;

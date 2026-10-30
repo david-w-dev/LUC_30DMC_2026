@@ -29,7 +29,11 @@ Click the screen, type a command, and press Enter.
 | `zoom 1` to `zoom 10`         | Regional overview through building detail                  |
 | `help`                        | Show command help                                          |
 
-When search lists several matches, press the result number to highlight it, then Enter to navigate. Escape clears the entry and results. Failed commands clear the entry. The attribution on the screen links to OpenStreetMap's copyright page.
+The overview fits the available screen. Zoom levels 1-2 show major roads and larger green outlines; level 3 adds tertiary roads, level 4 adds sparse green hatching, and level 5 adds minor regional roads. Central Cardiff streets and buildings appear at finer scales.
+
+Use Up/Down to recall command history, preserving an unfinished draft. Tab completes commands and place names; repeat Tab to cycle matches. Commands run only when you press Enter. History lasts for the current session.
+
+When search lists several matches, use Up/Down or press the result number to highlight it, then Enter to navigate. Escape clears the entry and results. Failed commands clear the entry. The attribution on the screen links to OpenStreetMap's copyright page.
 
 ## Source structure
 
