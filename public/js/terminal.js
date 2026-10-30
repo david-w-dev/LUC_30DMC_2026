@@ -1,6 +1,6 @@
-import { findTargets, normalize as norm } from "./search.js?v=20261030-full";
+import { findTargets, normalize as norm } from "./search.js?v=20261030-download-fix";
 
-import { zoomScale } from "./camera.js?v=20261030-full";
+import { zoomScale } from "./camera.js?v=20261030-download-fix";
 
 export function createTerminal({
   canvas,

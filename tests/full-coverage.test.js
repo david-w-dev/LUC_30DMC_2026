@@ -74,7 +74,7 @@ test('the renderer draws newly loaded geometry and drops the previous viewport s
   const renderer=createRenderer({canvas:{getContext:()=>ctx},screen:{clientWidth:980,clientHeight:480},
     mapData,regionalData:{roads:[],water:[],green:[],labels:[]},state});
   renderer.draw();
-  assert.ok(!moves.some(([x])=>x===111));
+  assert.ok(moves.some(([x,y])=>x===111 && y===112),'loaded detail remains visible while other sections are pending');
   moves.length=0; mapData.detailReady=true;
   renderer.draw();
   assert.ok(moves.some(([x,y])=>x===111 && y===12));
@@ -83,5 +83,12 @@ test('the renderer draws newly loaded geometry and drops the previous viewport s
   mapData.detailTiles=[tile(211)]; mapData.detailRevision++;
   renderer.draw();
   assert.ok(moves.some(([x,y])=>x===211 && y===112));
-  assert.ok(!moves.some(([x])=>x===111));
+  assert.ok(!moves.some(([x])=>x===111),'sections from the previous view are removed');
+  mapData.detailError=true; mapData.detailReady=false;
+  for (const level of [5,6,7,8]) {
+    state.scale=state.baseScale*100**((level-1)/9);
+    moves.length=0;
+    renderer.draw();
+    assert.ok(moves.some(([x,y])=>x===211 && y===112),`loaded buildings stay visible at zoom ${level} even if a neighbour fails`);
+  }
 });

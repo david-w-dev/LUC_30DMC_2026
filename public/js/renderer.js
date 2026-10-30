@@ -1,4 +1,4 @@
-import { zoomLevel } from "./camera.js?v=20261030-full";
+import { zoomLevel } from "./camera.js?v=20261030-download-fix";
 
 export function createRenderer({
   canvas,
@@ -80,7 +80,7 @@ export function createRenderer({
       : kind === "tertiary" ? regionalSecondary : regionalMinor
     ).push(points);
   }
-  let detailRevision = -1, detailView = false;
+  let detailRevision = -1, detailView = false, detailIncomplete = false;
   const streamed = {major:[], secondary:[], minor:[], buildings:[], water:[], green:[]};
   function refreshDetail() {
     if (detailRevision === (mapData.detailRevision || 0)) return;
@@ -109,7 +109,8 @@ export function createRenderer({
   function drawGreen() {
     ctx.beginPath();
     for (const points of [
-      ...(detailView ? streamed.green : regionalData.green),
+      ...(!detailView || detailIncomplete ? regionalData.green : []),
+      ...(detailView ? streamed.green : []),
       ...(!detailView && state.scale > 0.12 ? mapData.green : []),
     ]) {
       if (points.length < 4 || !visible(points)) continue;
@@ -171,15 +172,17 @@ export function createRenderer({
     ctx.translate(w / 2 + state.offsetX, h / 2 + state.offsetY);
     ctx.scale(state.scale, state.scale);
     refreshDetail();
-    detailView = !!(mapData.fullCoverage && zoomLevel(state)>=3 && mapData.detailReady && !mapData.detailError);
+    detailView = !!(mapData.fullCoverage && zoomLevel(state)>=3 && mapData.detailTiles?.length);
+    detailIncomplete = !!(mapData.detailLoading || mapData.detailError);
     drawGreen();
-    drawBatch(detailView ? streamed.water : regionalData.water, "#66bacb", 1.4 / state.scale);
+    if (!detailView || detailIncomplete) drawBatch(regionalData.water, "#66bacb", 1.4 / state.scale);
+    if (detailView) drawBatch(streamed.water, "#66bacb", 1.4 / state.scale);
     if (state.scale > 0.12)
       drawBatch(mapData.water, "#66bacb", 1.8 / state.scale);
     const level = zoomLevel(state);
-    if (!detailView && level >= 3) drawBatch(regionalSecondary, "#b8c2b4", 0.72 / state.scale);
-    if (!detailView && level >= 5) drawBatch(regionalMinor, "#91aaa1", 0.6 / state.scale);
-    if (!detailView) drawBatch(regionalMajor, "#ddd8ba", 1.3 / state.scale);
+    if ((!detailView || detailIncomplete) && level >= 3) drawBatch(regionalSecondary, "#b8c2b4", 0.72 / state.scale);
+    if ((!detailView || detailIncomplete) && level >= 5) drawBatch(regionalMinor, "#91aaa1", 0.6 / state.scale);
+    if (!detailView || detailIncomplete) drawBatch(regionalMajor, "#ddd8ba", 1.3 / state.scale);
     if (detailView) {
       drawBatch(streamed.major, '#ddd8ba', 1.35 / state.scale);
       drawBatch(streamed.secondary, '#b8c2b4', 0.82 / state.scale);
@@ -385,7 +388,7 @@ export function createRenderer({
     }
     backedText("© OPENSTREETMAP CONTRIBUTORS / ODbL", 12, 19);
     const titleY = h - (state.suggestions.length ? 94 + state.suggestions.length * 16 : 84) - 10;
-    backedText("CARDIFF + VALE  //  OSM EXTRACT" + (mapData.detailError ? "  |  DETAIL UNAVAILABLE - RELOAD TO RETRY" : mapData.detailLoading ? "  |  LOADING MAP DETAIL" : ""), 12, titleY);
+    backedText("CARDIFF + VALE  //  OSM EXTRACT" + (mapData.detailError ? "  |  SOME DETAIL UNAVAILABLE - RELOAD TO RETRY" : mapData.detailLoading ? "  |  LOADING MAP DETAIL" : ""), 12, titleY);
     const currentZoomLevel = Math.round(zoomLevel(state));
     ctx.textAlign = "right";
     backedText(

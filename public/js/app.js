@@ -1,11 +1,11 @@
-import { createDetailLoader } from "./detail-loader.js?v=20261030-full";
-import { createRadar } from "./radar.js?v=20261030-full";
-import { createMapExport } from "./export-map.js?v=20261030-full";
-import { loadMapData } from "./map-data.js?v=20261030-full";
-import { createRenderer } from "./renderer.js?v=20261030-full";
-import { createCamera, fitOverview } from "./camera.js?v=20261030-full";
-import { createTerminal } from "./terminal.js?v=20261030-full";
-import { createShaderOverlay } from "./crt-overlay.js?v=20261030-full";
+import { createDetailLoader } from "./detail-loader.js?v=20261030-download-fix";
+import { createRadar } from "./radar.js?v=20261030-download-fix";
+import { createMapExport } from "./export-map.js?v=20261030-download-fix";
+import { loadMapData } from "./map-data.js?v=20261030-download-fix";
+import { createRenderer } from "./renderer.js?v=20261030-download-fix";
+import { createCamera, fitOverview } from "./camera.js?v=20261030-download-fix";
+import { createTerminal } from "./terminal.js?v=20261030-download-fix";
+import { createShaderOverlay } from "./crt-overlay.js?v=20261030-download-fix";
 
 const canvas = document.querySelector("#map-canvas");
 const screen = document.querySelector("#map-screen");
