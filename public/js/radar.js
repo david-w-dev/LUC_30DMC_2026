@@ -60,6 +60,8 @@ export function createRadar({state, screen, pois, draw}) {
       while (scan.revealed.length < candidates.length && candidates[scan.revealed.length].distance <= scan.radius) {
         scan.revealed.push({...candidates[scan.revealed.length], revealedAt: now});
       }
+      // Animated pulses and changing result panels must not accumulate in CRT history.
+      state.display?.clearHistory();
       showPage(); draw();
       if (scan.scanning) frame = requestAnimationFrame(tick);
     };

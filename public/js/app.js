@@ -1,12 +1,12 @@
-import { connectMobileTerminal } from "./mobile-terminal.js?v=20261030-grid";
-import { createDetailLoader } from "./detail-loader.js?v=20261030-grid";
-import { createRadar } from "./radar.js?v=20261030-grid";
-import { createMapExport } from "./export-map.js?v=20261030-grid";
-import { loadMapData } from "./map-data.js?v=20261030-grid";
-import { createRenderer } from "./renderer.js?v=20261030-grid";
-import { createCamera, fitOverview } from "./camera.js?v=20261030-grid";
-import { createTerminal } from "./terminal.js?v=20261030-grid";
-import { createShaderOverlay } from "./crt-overlay.js?v=20261030-grid";
+import { connectMobileTerminal } from "./mobile-terminal.js?v=20261030-mobile-radar";
+import { createDetailLoader } from "./detail-loader.js?v=20261030-mobile-radar";
+import { createRadar } from "./radar.js?v=20261030-mobile-radar";
+import { createMapExport } from "./export-map.js?v=20261030-mobile-radar";
+import { loadMapData } from "./map-data.js?v=20261030-mobile-radar";
+import { createRenderer } from "./renderer.js?v=20261030-mobile-radar";
+import { createCamera, fitOverview } from "./camera.js?v=20261030-mobile-radar";
+import { createTerminal } from "./terminal.js?v=20261030-mobile-radar";
+import { createShaderOverlay } from "./crt-overlay.js?v=20261030-mobile-radar";
 
 const canvas = document.querySelector("#map-canvas");
 const screen = document.querySelector("#map-screen");

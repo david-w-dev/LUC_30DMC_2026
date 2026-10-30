@@ -5,7 +5,7 @@ import {
   blurFragSrc,
   vectorCompositeFragSrc,
   passthroughFragmentSource,
-} from "./shaders.js?v=20261030-grid";
+} from "./shaders.js?v=20261030-mobile-radar";
 
 /*
 MIT License
@@ -116,8 +116,9 @@ export function createShaderOverlay(gameCanvas, options = {}) {
     const rect = gameCanvas.getBoundingClientRect();
     overlay.style.left = rect.left + "px";
     overlay.style.top = rect.top + "px";
-    overlay.width = rect.width;
-    overlay.height = rect.height;
+    const width = Math.round(rect.width), height = Math.round(rect.height);
+    if (overlay.width !== width) overlay.width = width;
+    if (overlay.height !== height) overlay.height = height;
     overlay.style.width = rect.width + "px";
     overlay.style.height = rect.height + "px";
   };
