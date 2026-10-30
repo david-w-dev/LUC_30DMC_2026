@@ -17,7 +17,7 @@ const targets = [...central.targets, ...region.targets].map(
   }),
 );
 
-function fixture() {
+function fixture(services = {}) {
   const handlers = new Map();
   const moves = [];
   const state = {
@@ -40,6 +40,7 @@ function fixture() {
     regionalData: region,
     draw() {},
     animateTo: (...args) => moves.push(args),
+    ...services,
   });
   return {
     state,
@@ -179,4 +180,17 @@ test("Cardiff and the Vale destinations are searchable within the expanded bound
   }
   assert.ok(region.roads.some(([, points]) => points.some(([x]) => x < -25000)),
     "western Vale includes road geometry");
+});
+
+
+test("radar and print dispatch only on Enter, while Tab completes without running them", () => {
+  const calls = [];
+  const f = fixture({radar: {start:q=>calls.push(q),cancel:()=>{}}, exportMap:()=>calls.push('png')});
+  f.state.commandText = 'rad';
+  f.handlers.get('keydown')({key:'Tab', preventDefault(){}});
+  assert.equal(f.state.commandText, 'radar cafes');
+  assert.deepEqual(calls, []);
+  f.run('radar cafes'); f.run('radar next'); f.run('print');
+  assert.deepEqual(calls, ['cafes','next','png']);
+  assert.equal(f.state.commandText, '');
 });

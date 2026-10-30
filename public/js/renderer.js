@@ -1,4 +1,4 @@
-import { zoomLevel } from "./camera.js?v=20261030-vale";
+import { zoomLevel } from "./camera.js?v=20261030-radar";
 
 export function createRenderer({
   canvas,
@@ -175,6 +175,36 @@ export function createRenderer({
       ctx.stroke();
     }
     ctx.restore();
+    const radarBoxes = [];
+    if (state.radar) {
+      const scan = state.radar;
+      const sx = point => w / 2 + state.offsetX + point[0] * state.scale;
+      const sy = point => h / 2 + state.offsetY + point[1] * state.scale;
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0, 30, w, Math.max(0, h - 220)); ctx.clip();
+      if (scan.scanning) {
+        ctx.strokeStyle = "#a6ffb0"; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(sx(scan.centre), sy(scan.centre), scan.radius * state.scale, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = "#396e50"; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(sx(scan.centre), sy(scan.centre), Math.max(0, scan.radius * state.scale - 5), 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.font = "12px monospace"; ctx.textAlign = "left";
+      for (const poi of scan.revealed) {
+        const x = sx(poi.point), y = sy(poi.point);
+        const index = state.suggestions.findIndex(item => item.id === poi.id);
+        const selected = index >= 0 && index === state.selectedIndex;
+        const fresh = performance.now() - poi.revealedAt < 450;
+        ctx.strokeStyle = selected || fresh ? "#e4fff0" : "#83e8a3";
+        ctx.lineWidth = selected ? 2 : 1;
+        ctx.beginPath(); ctx.arc(x, y, fresh ? 7 : selected ? 5 : 3, 0, Math.PI * 2); ctx.stroke();
+        if (index >= 0) {
+          ctx.fillStyle = "#000"; ctx.fillRect(x + 7, y - 11, 16, 16);
+          ctx.fillStyle = "#b6ffd0"; ctx.fillText(String(index + 1), x + 10, y + 1);
+          radarBoxes.push([x - 9, y - 16, x + 27, y + 12]);
+        }
+      }
+      ctx.restore();
+    }
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.font = "11px monospace";
@@ -196,6 +226,7 @@ export function createRenderer({
     const labelLimit = Math.max(8, Math.min(80,
       Math.floor(w * Math.max(1, mapBottom - 30) / (level < 3 ? 26000 : 16000))));
     const occupied = [
+      ...radarBoxes,
       [0, 0, 270, 30],
       [w - 151, 0, w, 115],
       [
@@ -207,7 +238,7 @@ export function createRenderer({
         h,
       ],
     ];
-    const candidates = labels
+    const candidates = [...labels, ...(mapData.pois || []).filter(poi => poi.name === state.activeLabel)]
       .map((label) => {
         const x = w / 2 + state.offsetX + label.point[0] * state.scale,
           y = h / 2 + state.offsetY + label.point[1] * state.scale;
@@ -347,7 +378,7 @@ export function createRenderer({
       }
       ctx.fillStyle = i === state.selectedIndex ? "#e4f8ff" : "#82bad0";
       ctx.fillText(
-        `${i + 1}  ${item.category.toUpperCase()}  ${item.name}`,
+        `${i + 1}  ${item.category.toUpperCase()}  ${item.name}${item.distance != null ? "  " + (item.distance < 1000 ? Math.round(item.distance) + " M" : (item.distance / 1000).toFixed(1) + " KM") : ""}`,
         14,
         h - panelHeight + 38 + i * 16,
         w - 28,

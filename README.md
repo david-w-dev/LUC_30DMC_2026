@@ -35,6 +35,15 @@ Use Up/Down to recall command history, preserving an unfinished draft. Tab compl
 
 When search lists several matches, use Up/Down or press the result number to highlight it, then Enter to navigate. Escape clears the entry and results. Failed commands clear the entry. The attribution on the screen links to OpenStreetMap's copyright page.
 
+## Radar and PNG export
+
+- `radar cafes` (or simply `radar`), `radar pubs`, `radar restaurants`, `radar parks`: expand a pulse from the current map centre, revealing imported POIs as it reaches them. Only POIs visible above the results panel are included.
+- Revealed markers stay on the display; numbers 1-4 and Enter navigate to the current page's results. Distances are straight-line distances from the scan origin.
+- `radar next` / `radar prev`: page through results; `radar clear` or Escape clears the pulse and markers. Moving, zooming or resizing cancels the scan.
+- `print`: download the current display as a PNG, including CRT glow and sustain when WebGL is available. Browsers without WebGL export the map canvas. This command does not open the browser print dialog.
+
+POIs are static OSM zoom-14 samples around Cardiff, Barry, Penarth, Cowbridge, Llantwit Major, St Athan, Ogmore-by-Sea and Rhoose, rather than a complete regional business inventory. Rebuild with `python tools/prepare_pois.py` after installing the existing Python requirements. The browser makes no live POI requests.
+
 ## Source structure
 
 - `public/index.html`, `styles.css`: the full-window map screen.

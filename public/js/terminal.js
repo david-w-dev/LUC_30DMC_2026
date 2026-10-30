@@ -1,6 +1,6 @@
-import { findTargets, normalize as norm } from "./search.js?v=20261030-vale";
+import { findTargets, normalize as norm } from "./search.js?v=20261030-radar";
 
-import { zoomScale } from "./camera.js?v=20261030-vale";
+import { zoomScale } from "./camera.js?v=20261030-radar";
 
 export function createTerminal({
   canvas,
@@ -9,6 +9,7 @@ export function createTerminal({
   state,
   animateTo,
   draw,
+  radar, exportMap,
 }) {
   const history = [];
   let historyIndex = 0, draft = "", completion = null;
@@ -24,7 +25,7 @@ export function createTerminal({
           .slice(0, 12).map(({target}) => prefix + target.name);
         if (!move[2] && !move[1]) values.unshift("move LUC");
       } else {
-        values = ["move ", "zoom ", "help", ...Array.from({length: 10}, (_, i) => `zoom ${i + 1}`)]
+        values = ["move ", "zoom ", "help", "print", "radar cafes", "radar pubs", "radar restaurants", "radar parks", "radar next", "radar prev", "radar clear", ...Array.from({length: 10}, (_, i) => `zoom ${i + 1}`)]
           .filter(value => value.startsWith(input.toLowerCase()));
       }
       completion = { values: [...new Set(values)], index: -1 };
@@ -36,8 +37,9 @@ export function createTerminal({
     draw();
   }
   function moveTo(point, description) {
+    radar?.cancel();
     state.activeLabel =
-      mapData.targets.find(
+      [...mapData.targets, ...(mapData.pois || [])].find(
         (t) => t.point[0] === point[0] && t.point[1] === point[1],
       )?.name || "";
     state.suggestions = [];
@@ -58,7 +60,12 @@ export function createTerminal({
       /^move\s+(?:\{\s*location\s*:\s*([^}]+)\s*\}|(?:(place|street|landmark|address|coords|id)\s+)?(.+))$/i,
     );
     const zoom = input.match(/^zoom\s+(?:\{\s*level\s*:\s*(\d+)\s*\}|(\d+))$/i);
-    if (move) {
+    if (!/^radar(?:\s|$)/i.test(input) && !/^print$/i.test(input)) radar?.cancel();
+    if (/^print$/i.test(input)) {
+      exportMap?.();
+    } else if (/^radar(?:\s|$)/i.test(input)) {
+      radar?.start(input.replace(/^radar\s*/i, ""));
+    } else if (move) {
       const category = (move[2] || "").toLowerCase(),
         name = (move[1] || move[3]).trim();
       if (
@@ -133,7 +140,7 @@ export function createTerminal({
     } else if (/^help$/i.test(input)) {
       state.suggestions = [];
       state.responseText =
-        "MOVE <NAME> · MOVE PLACE/STREET/LANDMARK/ADDRESS <NAME> · ZOOM 1-10";
+        "MOVE <NAME> | ZOOM 1-10 | RADAR CAFES/PUBS/RESTAURANTS/PARKS | PRINT (PNG)";
     } else {
       state.suggestions = [];
       state.responseText = "USE: MOVE CASTLE · MOVE PARK PLACE · ZOOM 7 · HELP";
@@ -199,6 +206,7 @@ export function createTerminal({
       state.commandText = state.commandText.slice(0, -1);
       draw();
     } else if (e.key === "Escape") {
+      radar?.cancel();
       state.commandText = "";
       state.suggestions = [];
       state.selectedIndex = -1;

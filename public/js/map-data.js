@@ -14,10 +14,15 @@ async function loadDataset(path) {
 }
 
 export async function loadMapData() {
-  const [mapData, regionalData] = await Promise.all([
-    loadDataset("../data/cardiff-map.json?v=20261030-vale"),
-    loadDataset("../data/regional-map.json?v=20261030-vale"),
+  const [mapData, regionalData, poiData] = await Promise.all([
+    loadDataset("../data/cardiff-map.json?v=20261030-radar"),
+    loadDataset("../data/regional-map.json?v=20261030-radar"),
+    fetch(new URL("../data/pois.json?v=20261030-radar", import.meta.url)).then(response => {
+      if (!response.ok) throw new Error("POI data failed to load");
+      return response.json();
+    }),
   ]);
+  mapData.pois = poiData.pois;
   mapData.roads = mapData.roads.map(([roadClass, points]) => ({
     class: roadClass,
     points,

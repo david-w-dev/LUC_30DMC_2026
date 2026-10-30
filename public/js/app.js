@@ -1,8 +1,10 @@
-import { loadMapData } from "./map-data.js?v=20261030-vale";
-import { createRenderer } from "./renderer.js?v=20261030-vale";
-import { createCamera, fitOverview } from "./camera.js?v=20261030-vale";
-import { createTerminal } from "./terminal.js?v=20261030-vale";
-import { createShaderOverlay } from "./crt-overlay.js?v=20261030-vale";
+import { createRadar } from "./radar.js?v=20261030-radar";
+import { createMapExport } from "./export-map.js?v=20261030-radar";
+import { loadMapData } from "./map-data.js?v=20261030-radar";
+import { createRenderer } from "./renderer.js?v=20261030-radar";
+import { createCamera, fitOverview } from "./camera.js?v=20261030-radar";
+import { createTerminal } from "./terminal.js?v=20261030-radar";
+import { createShaderOverlay } from "./crt-overlay.js?v=20261030-radar";
 
 const canvas = document.querySelector("#map-canvas");
 const screen = document.querySelector("#map-screen");
@@ -50,12 +52,15 @@ try {
     state,
   });
   const camera = createCamera(state, draw);
+  const radar = createRadar({state, screen, pois: mapData.pois, draw});
+  const exportMap = createMapExport({canvas, state, draw});
   createTerminal({
     canvas,
     mapData,
     regionalData,
     state,
     animateTo: camera.animateTo,
+    radar, exportMap,
     draw,
   });
   let width = screen.clientWidth, height = screen.clientHeight;
@@ -63,6 +68,8 @@ try {
     const nextWidth = screen.clientWidth, nextHeight = screen.clientHeight;
     if (width !== nextWidth || height !== nextHeight) {
       camera.cancel();
+      radar.cancel();
+      state.suggestions = []; state.selectedIndex = -1;
       const overview = fitOverview(regionalData.bounds, mapData.origin, nextWidth, nextHeight);
       const ratio = overview.baseScale / state.baseScale;
       state.scale *= ratio;

@@ -5,7 +5,7 @@ import {
   blurFragSrc,
   vectorCompositeFragSrc,
   passthroughFragmentSource,
-} from "./shaders.js?v=20261030-vale";
+} from "./shaders.js?v=20261030-radar";
 
 /*
 MIT License
@@ -310,6 +310,7 @@ export function createShaderOverlay(gameCanvas, options = {}) {
     gl.vertexAttribPointer(prog.aTexCoord, 2, gl.FLOAT, false, 16, 8);
   }
 
+  const captures = [];
   let running = true;
   let rafId = null;
 
@@ -460,6 +461,12 @@ export function createShaderOverlay(gameCanvas, options = {}) {
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
+    if (captures.length) {
+      const snapshot = document.createElement("canvas");
+      snapshot.width = overlay.width; snapshot.height = overlay.height;
+      snapshot.getContext("2d").drawImage(overlay, 0, 0);
+      for (const request of captures.splice(0)) request.resolve(snapshot);
+    }
     rafId = requestAnimationFrame(render);
   }
 
@@ -468,6 +475,17 @@ export function createShaderOverlay(gameCanvas, options = {}) {
   return {
     /** The overlay canvas element */
     overlay,
+    capture() {
+      return new Promise((resolve, reject) => {
+        const request = {resolve: value => { clearTimeout(timeout); resolve(value); }};
+        const timeout = setTimeout(() => {
+          const index = captures.indexOf(request);
+          if (index >= 0) captures.splice(index, 1);
+          reject(new Error("CRT capture timed out"));
+        }, 10000);
+        captures.push(request);
+      });
+    },
 
     /**
      * Switch display mode.
