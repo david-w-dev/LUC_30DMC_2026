@@ -1,4 +1,4 @@
-import { zoomLevel } from "./camera.js?v=20261030-labels";
+import { zoomLevel } from "./camera.js?v=20261030-vale";
 
 export function createRenderer({
   canvas,
@@ -186,6 +186,10 @@ export function createRenderer({
       "Penarth",
       "Rhoose",
       "Rogerstone",
+      "Cowbridge",
+      "Llantwit Major",
+      "St Athan",
+      "Ogmore-by-Sea",
     ]);
     const panelHeight = state.suggestions.length ? 94 + state.suggestions.length * 16 : 84;
     const mapBottom = h - panelHeight - 26;
@@ -314,7 +318,7 @@ export function createRenderer({
     }
     backedText("© OPENSTREETMAP CONTRIBUTORS / ODbL", 12, 19);
     const titleY = h - (state.suggestions.length ? 94 + state.suggestions.length * 16 : 84) - 10;
-    backedText("SOUTH WALES  //  OSM EXTRACT", 12, titleY);
+    backedText("CARDIFF + VALE  //  OSM EXTRACT", 12, titleY);
     const currentZoomLevel = Math.round(zoomLevel(state));
     ctx.textAlign = "right";
     backedText(

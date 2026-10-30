@@ -1,6 +1,7 @@
 """Fetch the bounded source extracts used for the checked-in demo datasets."""
 import argparse
 import json
+import math
 from pathlib import Path
 import subprocess
 import time
@@ -38,10 +39,18 @@ def main():
         for name, bounds in extracts.items():
             download(f'https://api.openstreetmap.org/api/0.6/map?bbox={bounds}', RAW / name)
     if args.dataset in ('regional', 'both'):
-        for x in range(2009, 2014):
-            for y in range(1360, 1365):
+        config = json.loads((ROOT / 'tools' / 'regional-config.json').read_text())
+        west, south, east, north = config['bounds']
+        zoom = config['zoom']
+        def tile(lon, lat):
+            return (math.floor((lon + 180) / 360 * 2 ** zoom),
+                    math.floor((1 - math.asinh(math.tan(math.radians(lat))) / math.pi) / 2 * 2 ** zoom))
+        x0, y0 = tile(west, north)
+        x1, y1 = tile(east, south)
+        for x in range(x0, x1 + 1):
+            for y in range(y0, y1 + 1):
                 download(
-                    f'https://vector.openstreetmap.org/shortbread_v1/12/{x}/{y}.mvt',
+                    f'https://vector.openstreetmap.org/shortbread_v1/{zoom}/{x}/{y}.mvt',
                     RAW / 'region_tiles' / f'{x}_{y}.mvt',
                 )
 

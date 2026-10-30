@@ -44,7 +44,7 @@ When search lists several matches, use Up/Down or press the result number to hig
 - `public/js/camera.js`: smooth pan and logarithmic zoom.
 - `public/js/search.js`, `terminal.js`: matching and command input.
 - `public/js/crt-overlay.js`, `shaders.js`: the adapted RetroZone WebGL effect.
-- `public/data/`: compressed datasets split into small static files; these make the deployed app independent of third-party map requests.
+- `public/data/`: compressed datasets split into small static files with content-based filenames; these make the deployed app independent of third-party map requests.
 - `tools/`: optional Python data preparation.
 - `tests/`: command and rendering regression tests using Node's built-in test runner.
 
@@ -64,9 +64,9 @@ Expected site address: https://david-w-dev.github.io/LUC_30DMC_2026/
 
 ## Map data and limits
 
-The current map covers Rhoose, Pontypridd, Rogerstone and the area between them. Central Cardiff has finer building and street geometry. Regional geometry is simplified, with sampled residential roads and larger green areas; it is not a complete inventory. Addresses and building footprints are also sampled. This migration preserves the existing scope and visual design.
+The current map covers Cardiff and the Vale of Glamorgan, west to Ogmore-by-Sea, including Cowbridge, Llantwit Major, St Athan, Barry and Penarth. Existing coverage towards Pontypridd and Rogerstone is retained. The display uses a rectangular regional extract rather than clipping to council boundaries. Central Cardiff has finer building and street geometry. Regional geometry is simplified, with sampled residential roads and larger green areas; it is not a complete inventory. Addresses and building footprints are also sampled. This migration preserves the existing scope and visual design.
 
-Map data was retrieved on 28 September 2026. Inspection, boundaries, routing and Wales-wide streaming are future work, not implemented commands. Regional tile-derived identifiers such as `place/Cardiff` are internal search keys rather than OSM object IDs.
+Central Cardiff data was retrieved on 28 September 2026. The regional extract was expanded on 30 October 2026 using cached source tiles and newly fetched western and northern tiles. Inspection, boundaries, routing and Wales-wide streaming are future work, not implemented commands. Regional tile-derived identifiers such as `place/Cardiff` are internal search keys rather than OSM object IDs.
 
 ### Rebuild the datasets
 
@@ -82,7 +82,7 @@ python tools/prepare_region.py
 python tools/pack_data.py
 ```
 
-The fetch script requires `curl`. Review resulting data changes before committing: live OSM data can differ from the original extract. Use prepared regional extracts or a tile pipeline for future Wales-wide coverage rather than bulk requests to the OSM editing API.
+Regional bounds, zoom and projection origin are configured in `tools/regional-config.json`; the fetch script calculates the required tile range from those bounds. The fetch script requires `curl`. Review resulting data changes before committing: live OSM data can differ from the original extract. Use prepared regional extracts or a tile pipeline for future Wales-wide coverage rather than bulk requests to the OSM editing API.
 
 ## Attribution
 

@@ -1,8 +1,8 @@
-import { loadMapData } from "./map-data.js?v=20261030-labels";
-import { createRenderer } from "./renderer.js?v=20261030-labels";
-import { createCamera, fitOverview } from "./camera.js?v=20261030-labels";
-import { createTerminal } from "./terminal.js?v=20261030-labels";
-import { createShaderOverlay } from "./crt-overlay.js?v=20261030-labels";
+import { loadMapData } from "./map-data.js?v=20261030-vale";
+import { createRenderer } from "./renderer.js?v=20261030-vale";
+import { createCamera, fitOverview } from "./camera.js?v=20261030-vale";
+import { createTerminal } from "./terminal.js?v=20261030-vale";
+import { createShaderOverlay } from "./crt-overlay.js?v=20261030-vale";
 
 const canvas = document.querySelector("#map-canvas");
 const screen = document.querySelector("#map-screen");
@@ -12,7 +12,7 @@ const state = {
   offsetY: 24,
   display: null,
   commandText: "",
-  responseText: "READY - MOVE LUC / MOVE PONTYPRIDD / ZOOM 7",
+  responseText: "READY - MOVE LUC / MOVE COWBRIDGE / ZOOM 7",
   cursorVisible: true,
   suggestions: [],
   selectedIndex: -1,

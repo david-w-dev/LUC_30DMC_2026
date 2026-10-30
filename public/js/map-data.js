@@ -15,8 +15,8 @@ async function loadDataset(path) {
 
 export async function loadMapData() {
   const [mapData, regionalData] = await Promise.all([
-    loadDataset("../data/cardiff-map.json"),
-    loadDataset("../data/regional-map.json"),
+    loadDataset("../data/cardiff-map.json?v=20261030-vale"),
+    loadDataset("../data/regional-map.json?v=20261030-vale"),
   ]);
   mapData.roads = mapData.roads.map(([roadClass, points]) => ({
     class: roadClass,

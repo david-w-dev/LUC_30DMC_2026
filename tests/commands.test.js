@@ -165,3 +165,18 @@ test("arrows select matches and Escape cancels them", () => {
   key("Enter");
   assert.equal(f.moves.length, 0);
 });
+
+test("Cardiff and the Vale destinations are searchable within the expanded bounds", () => {
+  for (const name of ["Cardiff", "Barry", "Penarth", "Cowbridge", "Llantwit Major", "St Athan", "Ogmore-by-Sea", "Pontypridd", "Rogerstone"]) {
+    const match = findTargets(targets, name, "place")[0];
+    assert.ok(match, name);
+    assert.equal(match.target.name, name);
+    const [x, y] = match.target.point;
+    const lon = central.origin[0] + x / 69400;
+    const lat = central.origin[1] - y / 111320;
+    assert.ok(lon >= region.bounds[0] && lon <= region.bounds[2] &&
+      lat >= region.bounds[1] && lat <= region.bounds[3], name + " is in bounds");
+  }
+  assert.ok(region.roads.some(([, points]) => points.some(([x]) => x < -25000)),
+    "western Vale includes road geometry");
+});

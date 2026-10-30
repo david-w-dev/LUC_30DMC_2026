@@ -9,10 +9,11 @@ OUTPUT.mkdir(parents=True, exist_ok=True)
 
 import mapbox_vector_tile
 
-ZOOM = 12
+CONFIG = json.loads((ROOT / "tools" / "regional-config.json").read_text())
+ZOOM = CONFIG["zoom"]
 TILE_SIZE = 4096
-BOUNDS = (-3.38, 51.375, -3.02, 51.62)
-LON0, LAT0 = -3.182, 51.4835
+BOUNDS = tuple(CONFIG["bounds"])
+LON0, LAT0 = CONFIG["origin"]
 METRES_X = 111320 * math.cos(math.radians(LAT0))
 METRES_Y = 111320
 
@@ -109,5 +110,5 @@ data = {'bounds': BOUNDS, 'roads': roads, 'water': water, 'green': green, 'label
 print('Regional geometry:', len(roads), 'roads,', len(water), 'water,', len(green), 'green')
 print('Regional targets:', len(places), 'places,', len(street_names), 'streets')
 print('Regional bytes:', (OUTPUT / 'regional-map.json').stat().st_size)
-for name in ('Rhoose', 'Pontypridd', 'Rogerstone'):
+for name in ('Cardiff', 'Barry', 'Cowbridge', 'Llantwit Major', 'St Athan', 'Ogmore-by-Sea', 'Pontypridd', 'Rogerstone'):
     print(name, name in places)
