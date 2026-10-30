@@ -1,4 +1,4 @@
-import { zoomLevel } from "./camera.js?v=20261030-download-fix";
+import { zoomLevel } from "./camera.js?v=20261030-ui125";
 
 export function createRenderer({
   canvas,
@@ -209,18 +209,24 @@ export function createRenderer({
       ctx.stroke();
     }
     ctx.restore();
+    // Draw UI in logical pixels; keep map projection and geometry in screen pixels.
+    ctx.save();
+    const uiScale = 1.25;
+    ctx.scale(uiScale, uiScale);
+    {
+    const w = screen.clientWidth / uiScale, h = screen.clientHeight / uiScale;
     const radarBoxes = [];
     if (state.radar) {
       const scan = state.radar;
-      const sx = point => w / 2 + state.offsetX + point[0] * state.scale;
-      const sy = point => h / 2 + state.offsetY + point[1] * state.scale;
+      const sx = point => w / 2 + (state.offsetX + point[0] * state.scale) / uiScale;
+      const sy = point => h / 2 + (state.offsetY + point[1] * state.scale) / uiScale;
       ctx.save();
       ctx.beginPath(); ctx.rect(0, 30, w, Math.max(0, h - 220)); ctx.clip();
       if (scan.scanning) {
         ctx.strokeStyle = "#a6ffb0"; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.arc(sx(scan.centre), sy(scan.centre), scan.radius * state.scale, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(sx(scan.centre), sy(scan.centre), scan.radius * state.scale / uiScale, 0, Math.PI * 2); ctx.stroke();
         ctx.strokeStyle = "#396e50"; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(sx(scan.centre), sy(scan.centre), Math.max(0, scan.radius * state.scale - 5), 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(sx(scan.centre), sy(scan.centre), Math.max(0, scan.radius * state.scale / uiScale - 5), 0, Math.PI * 2); ctx.stroke();
       }
       ctx.font = "12px monospace"; ctx.textAlign = "left";
       for (const poi of scan.revealed) {
@@ -285,8 +291,8 @@ export function createRenderer({
         label.point[0]>=visibleRect[0] && label.point[0]<=visibleRect[2] &&
         label.point[1]>=visibleRect[1] && label.point[1]<=visibleRect[3])
       .map((label) => {
-        const x = w / 2 + state.offsetX + label.point[0] * state.scale,
-          y = h / 2 + state.offsetY + label.point[1] * state.scale;
+        const x = w / 2 + (state.offsetX + label.point[0] * state.scale) / uiScale,
+          y = h / 2 + (state.offsetY + label.point[1] * state.scale) / uiScale;
         const threshold = labelThreshold(label);
         return {
           label,
@@ -434,6 +440,8 @@ export function createRenderer({
       const cursorX = 14 + ctx.measureText("> " + state.commandText).width;
       if (cursorX < w - 20) ctx.fillRect(cursorX, h - 28, 6, 9);
     }
+    }
+    ctx.restore();
   }
 
   return { draw };

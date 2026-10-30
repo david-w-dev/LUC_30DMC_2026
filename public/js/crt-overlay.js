@@ -5,7 +5,7 @@ import {
   blurFragSrc,
   vectorCompositeFragSrc,
   passthroughFragmentSource,
-} from "./shaders.js?v=20261030-download-fix";
+} from "./shaders.js?v=20261030-ui125";
 
 /*
 MIT License

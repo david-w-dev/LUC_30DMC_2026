@@ -1,11 +1,11 @@
-import { createDetailLoader } from "./detail-loader.js?v=20261030-download-fix";
-import { createRadar } from "./radar.js?v=20261030-download-fix";
-import { createMapExport } from "./export-map.js?v=20261030-download-fix";
-import { loadMapData } from "./map-data.js?v=20261030-download-fix";
-import { createRenderer } from "./renderer.js?v=20261030-download-fix";
-import { createCamera, fitOverview } from "./camera.js?v=20261030-download-fix";
-import { createTerminal } from "./terminal.js?v=20261030-download-fix";
-import { createShaderOverlay } from "./crt-overlay.js?v=20261030-download-fix";
+import { createDetailLoader } from "./detail-loader.js?v=20261030-ui125";
+import { createRadar } from "./radar.js?v=20261030-ui125";
+import { createMapExport } from "./export-map.js?v=20261030-ui125";
+import { loadMapData } from "./map-data.js?v=20261030-ui125";
+import { createRenderer } from "./renderer.js?v=20261030-ui125";
+import { createCamera, fitOverview } from "./camera.js?v=20261030-ui125";
+import { createTerminal } from "./terminal.js?v=20261030-ui125";
+import { createShaderOverlay } from "./crt-overlay.js?v=20261030-ui125";
 
 const canvas = document.querySelector("#map-canvas");
 const screen = document.querySelector("#map-screen");
@@ -29,8 +29,8 @@ function status(message) {
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#82bad0";
-  ctx.font = "12px monospace";
-  ctx.fillText(message, 14, canvas.height - 24, canvas.width - 28);
+  ctx.font = "15px monospace";
+  ctx.fillText(message, 17.5, canvas.height - 30, canvas.width - 35);
 }
 
 status("LOADING MAP DATA...");
