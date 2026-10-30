@@ -41,3 +41,26 @@ test('mobile commands wait for keyboard resize and ignore duplicate submissions'
   release(); await Promise.resolve();
   assert.equal(calls, 1);
 });
+
+test('touch controls forward terminal keys and synchronize the native input', () => {
+  const original = globalThis.KeyboardEvent;
+  globalThis.KeyboardEvent = class extends Event {
+    constructor(type, options) { super(type, options); this.key = options.key; }
+  };
+  try {
+    const buttons = ['ArrowUp', 'ArrowDown', 'Tab', 'Escape'].map(key => {
+      const button = new EventTarget(); button.dataset = {key}; return button;
+    });
+    const form = new EventTarget(); form.querySelectorAll = () => buttons;
+    const input = new EventTarget(); input.value = '';
+    const canvas = new EventTarget(), keys = [];
+    const state = {commandText: ''};
+    canvas.addEventListener('keydown', event => {
+      keys.push(event.key); state.commandText = event.key === 'Escape' ? '' : 'move Barry';
+    });
+    connectMobileTerminal({form, input, canvas, state, terminal: {}, draw() {}});
+    for (const button of buttons) button.dispatchEvent(new Event('click'));
+    assert.deepEqual(keys, ['ArrowUp', 'ArrowDown', 'Tab', 'Escape']);
+    assert.equal(input.value, '');
+  } finally { globalThis.KeyboardEvent = original; }
+});

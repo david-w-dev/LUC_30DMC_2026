@@ -5,7 +5,7 @@ import {
   blurFragSrc,
   vectorCompositeFragSrc,
   passthroughFragmentSource,
-} from "./shaders.js?v=20261030-mobile-radar";
+} from "./shaders.js?v=20261030-mobile-controls";
 
 /*
 MIT License

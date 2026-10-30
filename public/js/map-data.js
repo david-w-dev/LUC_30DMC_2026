@@ -1,3 +1,5 @@
+import { createCoverageCheck } from "./coverage.js?v=20261030-mobile-controls";
+
 const networkQueue = [];
 let activeRequests = 0;
 const MAX_REQUESTS = 6;
@@ -54,12 +56,13 @@ export async function loadDataset(path) {
 
 export async function loadMapData() {
   const [mapData, regionalData, poiData, detailManifest] = await Promise.all([
-    loadDataset("../data/cardiff-map.json?v=20261030-mobile-radar"),
-    loadDataset("../data/regional-map.json?v=20261030-mobile-radar"),
-    readMapResource(new URL("../data/pois.json?v=20261030-mobile-radar", import.meta.url)),
-    readMapResource(new URL("../data/detail-manifest.json?v=20261030-mobile-radar", import.meta.url)),
+    loadDataset("../data/cardiff-map.json?v=20261030-mobile-controls"),
+    loadDataset("../data/regional-map.json?v=20261030-mobile-controls"),
+    readMapResource(new URL("../data/pois.json?v=20261030-mobile-controls", import.meta.url)),
+    readMapResource(new URL("../data/detail-manifest.json?v=20261030-mobile-controls", import.meta.url)),
   ]);
-  mapData.pois = poiData.pois;
+  mapData.containsPoint = createCoverageCheck(detailManifest.councils, mapData.origin);
+  mapData.pois = poiData.pois.filter(poi => mapData.containsPoint(poi.point));
   mapData.roads = mapData.roads.map(([roadClass, points]) => ({
     class: roadClass,
     points,
@@ -74,5 +77,6 @@ export async function loadMapData() {
       cy,
     }),
   );
+  mapData.targets = mapData.targets.filter(target => mapData.containsPoint(target.point));
   return { mapData, regionalData, detailManifest };
 }

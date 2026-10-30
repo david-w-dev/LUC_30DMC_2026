@@ -1,12 +1,12 @@
-import { connectMobileTerminal } from "./mobile-terminal.js?v=20261030-mobile-radar";
-import { createDetailLoader } from "./detail-loader.js?v=20261030-mobile-radar";
-import { createRadar } from "./radar.js?v=20261030-mobile-radar";
-import { createMapExport } from "./export-map.js?v=20261030-mobile-radar";
-import { loadMapData } from "./map-data.js?v=20261030-mobile-radar";
-import { createRenderer } from "./renderer.js?v=20261030-mobile-radar";
-import { createCamera, fitOverview } from "./camera.js?v=20261030-mobile-radar";
-import { createTerminal } from "./terminal.js?v=20261030-mobile-radar";
-import { createShaderOverlay } from "./crt-overlay.js?v=20261030-mobile-radar";
+import { connectMobileTerminal } from "./mobile-terminal.js?v=20261030-mobile-controls";
+import { createDetailLoader } from "./detail-loader.js?v=20261030-mobile-controls";
+import { createRadar } from "./radar.js?v=20261030-mobile-controls";
+import { createMapExport } from "./export-map.js?v=20261030-mobile-controls";
+import { loadMapData } from "./map-data.js?v=20261030-mobile-controls";
+import { createRenderer } from "./renderer.js?v=20261030-mobile-controls";
+import { createCamera, fitOverview } from "./camera.js?v=20261030-mobile-controls";
+import { createTerminal } from "./terminal.js?v=20261030-mobile-controls";
+import { createShaderOverlay } from "./crt-overlay.js?v=20261030-mobile-controls";
 
 const canvas = document.querySelector("#map-canvas");
 const screen = document.querySelector("#map-screen");
@@ -79,7 +79,7 @@ try {
     draw,
   });
   connectMobileTerminal({form: document.querySelector('#mobile-terminal'),
-    input: document.querySelector('#mobile-command'), state, terminal, draw});
+    input: document.querySelector('#mobile-command'), canvas, state, terminal, draw});
   let width = screen.clientWidth, height = screen.clientHeight;
   const resize = new ResizeObserver(() => {
     const nextWidth = screen.clientWidth, nextHeight = screen.clientHeight;

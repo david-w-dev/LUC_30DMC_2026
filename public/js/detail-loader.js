@@ -1,5 +1,5 @@
-import { zoomLevel } from './camera.js?v=20261030-mobile-radar';
-import { loadDataset } from './map-data.js?v=20261030-mobile-radar';
+import { zoomLevel } from './camera.js?v=20261030-mobile-controls';
+import { loadDataset } from './map-data.js?v=20261030-mobile-controls';
 
 export function visibleSections(sections, state, width, height) {
   const rect = [(-width/2-state.offsetX)/state.scale - 200,

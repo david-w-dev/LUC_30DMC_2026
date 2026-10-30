@@ -1,11 +1,19 @@
 // Native text input is required to summon software keyboards on touch devices.
-export function connectMobileTerminal({ form, input, state, terminal, draw,
+export function connectMobileTerminal({ form, input, canvas, state, terminal, draw,
   settleViewport = waitForKeyboard }) {
   if (!form || !input) return;
   input.addEventListener('input', () => {
     state.commandText = input.value.slice(0, 64);
     draw();
   });
+  for (const button of form.querySelectorAll?.('[data-key]') || []) {
+    button.addEventListener('pointerdown', event => event.preventDefault());
+    button.addEventListener('click', () => {
+      state.commandText = input.value.slice(0, 64);
+      canvas.dispatchEvent(new KeyboardEvent('keydown', {key: button.dataset.key, cancelable: true}));
+      input.value = state.commandText;
+    });
+  }
   let submitting = false;
   form.addEventListener('submit', async event => {
     event.preventDefault();

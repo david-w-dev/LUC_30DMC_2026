@@ -1,6 +1,6 @@
-import { findTargets, normalize as norm } from "./search.js?v=20261030-mobile-radar";
+import { findTargets, normalize as norm } from "./search.js?v=20261030-mobile-controls";
 
-import { zoomScale } from "./camera.js?v=20261030-mobile-radar";
+import { zoomScale } from "./camera.js?v=20261030-mobile-controls";
 
 export function createTerminal({
   canvas,
@@ -37,6 +37,12 @@ export function createTerminal({
     draw();
   }
   function moveTo(point, description) {
+    if (mapData.containsPoint && !mapData.containsPoint(point)) {
+      state.suggestions = []; state.selectedIndex = -1;
+      state.responseText = "DESTINATION OUTSIDE CARDIFF AND VALE COVERAGE";
+      draw();
+      return;
+    }
     radar?.cancel();
     state.activeLabel =
       [...mapData.targets, ...(mapData.pois || [])].find(
