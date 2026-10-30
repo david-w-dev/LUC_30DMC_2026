@@ -1,10 +1,11 @@
-import { createRadar } from "./radar.js?v=20261030-zoomfix";
-import { createMapExport } from "./export-map.js?v=20261030-zoomfix";
-import { loadMapData } from "./map-data.js?v=20261030-zoomfix";
-import { createRenderer } from "./renderer.js?v=20261030-zoomfix";
-import { createCamera, fitOverview } from "./camera.js?v=20261030-zoomfix";
-import { createTerminal } from "./terminal.js?v=20261030-zoomfix";
-import { createShaderOverlay } from "./crt-overlay.js?v=20261030-zoomfix";
+import { createDetailLoader } from "./detail-loader.js?v=20261030-full";
+import { createRadar } from "./radar.js?v=20261030-full";
+import { createMapExport } from "./export-map.js?v=20261030-full";
+import { loadMapData } from "./map-data.js?v=20261030-full";
+import { createRenderer } from "./renderer.js?v=20261030-full";
+import { createCamera, fitOverview } from "./camera.js?v=20261030-full";
+import { createTerminal } from "./terminal.js?v=20261030-full";
+import { createShaderOverlay } from "./crt-overlay.js?v=20261030-full";
 
 const canvas = document.querySelector("#map-canvas");
 const screen = document.querySelector("#map-screen");
@@ -34,7 +35,7 @@ function status(message) {
 
 status("LOADING MAP DATA...");
 try {
-  const { mapData, regionalData } = await loadMapData();
+  const { mapData, regionalData, detailManifest } = await loadMapData();
   Object.assign(state, fitOverview(regionalData.bounds, mapData.origin,
     screen.clientWidth, screen.clientHeight));
   const cardiff = mapData.targets.find(target =>
@@ -44,13 +45,25 @@ try {
     state.offsetY = -cardiff.point[1] * state.scale - 38;
     state.activeLabel = cardiff.name;
   }
-  const { draw } = createRenderer({
+  const renderer = createRenderer({
     canvas,
     screen,
     mapData,
     regionalData,
     state,
   });
+  let redrawFrame = 0;
+  const detailLoader = createDetailLoader({mapData, manifest: detailManifest, redraw() {
+    cancelAnimationFrame(redrawFrame);
+    redrawFrame = requestAnimationFrame(() => {
+      state.display?.clearHistory();
+      draw();
+    });
+  }});
+  function draw() {
+    detailLoader.update(state, screen.clientWidth, screen.clientHeight);
+    renderer.draw();
+  }
   const camera = createCamera(state, draw);
   const radar = createRadar({state, screen, pois: mapData.pois, draw});
   const exportMap = createMapExport({canvas, state, draw});

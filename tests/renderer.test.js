@@ -62,7 +62,7 @@ function fixture(scale = 0.016) {
     regionalData,
     state,
   });
-  return { renderer, text, fills, state, targets };
+  return { renderer, text, fills, state, targets, mapData };
 }
 
 test("crowded names do not overlap and selected destination wins", () => {
@@ -137,4 +137,23 @@ test('zooming in and back out restores the original labels and hides building de
   f.renderer.draw();
   assert.deepEqual(f.text,initial);
   assert.ok(!f.fills.includes('#f2c552'));
+});
+
+
+test("streamed sections become active when ready and refresh after viewport changes", () => {
+  const f=fixture(0.5);
+  f.mapData.fullCoverage=true;
+  f.mapData.detailReady=true;
+  f.mapData.detailTiles=[{roads:[],buildings:[],water:[],green:[]}];
+  f.mapData.detailRevision=1;
+  f.renderer.draw();
+  f.mapData.detailReady=false;
+  f.mapData.detailLoading=true;
+  f.mapData.detailRevision=2;
+  f.renderer.draw();
+  assert.ok(f.text.some(t=>t.value.includes('LOADING MAP DETAIL')));
+  f.mapData.detailLoading=false;
+  f.mapData.detailError=true;
+  f.renderer.draw();
+  assert.ok(f.text.some(t=>t.value.includes('DETAIL UNAVAILABLE')));
 });

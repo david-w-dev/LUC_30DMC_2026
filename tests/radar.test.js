@@ -63,7 +63,7 @@ test('PNG snapshot falls back to copying the map when WebGL is unavailable', asy
 test('imported POIs provide real categories and valid coordinates', async () => {
   const {readFileSync} = await import('node:fs');
   const data = JSON.parse(readFileSync(new URL('../public/data/pois.json', import.meta.url)));
-  assert.match(data.scope,/samples/);
+  assert.match(data.scope,/Cardiff.*Vale/);
   assert.equal(new Set(data.pois.map(p=>p.id)).size,data.pois.length);
   for(const category of ['cafes','pubs','restaurants','parks']) {
     assert.ok(data.pois.filter(p=>p.category===category).length>10);
