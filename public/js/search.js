@@ -8,7 +8,7 @@ export function findTargets(targets, name, category) {
     matches = [];
   const rank = { place: 0, landmark: 1, street: 2, address: 3 };
   for (const target of targets) {
-    const lucAlias = query === "luc" && target.name === "Brunel House";
+    const lucAlias = query === "luc" && target.id === "way/26579743";
     if (
       category &&
       target.category !== category &&

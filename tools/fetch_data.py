@@ -32,8 +32,10 @@ def download(url, destination):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('dataset', choices=['central', 'regional', 'both'])
+    parser.add_argument('dataset', choices=['central', 'regional', 'both', 'full'])
     args = parser.parse_args()
+    if args.dataset == 'full':
+        download('https://download.geofabrik.de/europe/united-kingdom/wales-latest.osm.pbf', RAW / 'wales-latest.osm.pbf')
     if args.dataset in ('central', 'both'):
         extracts = json.loads((ROOT / 'tools' / 'central-extracts.json').read_text())
         for name, bounds in extracts.items():

@@ -1,4 +1,4 @@
-import { zoomLevel } from "./camera.js?v=20261030-zoomfix";
+import { zoomLevel } from "./camera.js?v=20261030-full";
 
 export function createRenderer({
   canvas,
@@ -38,7 +38,15 @@ export function createRenderer({
   }
   let visibleRect = [-Infinity, -Infinity, Infinity, Infinity];
   function visible(points) {
-    const box = pathBounds.get(points);
+    let box = pathBounds.get(points);
+    if (!box && points.length) {
+      box = [Infinity,Infinity,-Infinity,-Infinity];
+      for (const [x,y] of points) {
+        box[0]=Math.min(box[0],x); box[1]=Math.min(box[1],y);
+        box[2]=Math.max(box[2],x); box[3]=Math.max(box[3],y);
+      }
+      pathBounds.set(points,box);
+    }
     return (
       box &&
       box[2] >= visibleRect[0] &&
@@ -72,6 +80,21 @@ export function createRenderer({
       : kind === "tertiary" ? regionalSecondary : regionalMinor
     ).push(points);
   }
+  let detailRevision = -1, detailView = false;
+  const streamed = {major:[], secondary:[], minor:[], buildings:[], water:[], green:[]};
+  function refreshDetail() {
+    if (detailRevision === (mapData.detailRevision || 0)) return;
+    detailRevision = mapData.detailRevision || 0;
+    for (const key of Object.keys(streamed)) streamed[key] = [];
+    for (const tile of mapData.detailTiles || []) {
+      for (const [kind, points] of tile.roads) {
+        const group = ['motorway','motorway_link','trunk','trunk_link','primary','primary_link','secondary','secondary_link'].includes(kind)
+          ? 'major' : ['tertiary','tertiary_link','residential','unclassified','pedestrian','living_street'].includes(kind) ? 'secondary' : 'minor';
+        streamed[group].push(points);
+      }
+      for (const key of ['buildings','water','green']) streamed[key].push(...tile[key]);
+    }
+  }
   function drawBatch(lines, color, width) {
     ctx.beginPath();
     for (const points of lines) {
@@ -86,8 +109,8 @@ export function createRenderer({
   function drawGreen() {
     ctx.beginPath();
     for (const points of [
-      ...regionalData.green,
-      ...(state.scale > 0.12 ? mapData.green : []),
+      ...(detailView ? streamed.green : regionalData.green),
+      ...(!detailView && state.scale > 0.12 ? mapData.green : []),
     ]) {
       if (points.length < 4 || !visible(points)) continue;
       const box = pathBounds.get(points);
@@ -147,14 +170,22 @@ export function createRenderer({
     ctx.save();
     ctx.translate(w / 2 + state.offsetX, h / 2 + state.offsetY);
     ctx.scale(state.scale, state.scale);
+    refreshDetail();
+    detailView = !!(mapData.fullCoverage && zoomLevel(state)>=3 && mapData.detailReady && !mapData.detailError);
     drawGreen();
-    drawBatch(regionalData.water, "#66bacb", 1.4 / state.scale);
+    drawBatch(detailView ? streamed.water : regionalData.water, "#66bacb", 1.4 / state.scale);
     if (state.scale > 0.12)
       drawBatch(mapData.water, "#66bacb", 1.8 / state.scale);
     const level = zoomLevel(state);
-    if (level >= 3) drawBatch(regionalSecondary, "#b8c2b4", 0.72 / state.scale);
-    if (level >= 5) drawBatch(regionalMinor, "#91aaa1", 0.6 / state.scale);
-    drawBatch(regionalMajor, "#ddd8ba", 1.3 / state.scale);
+    if (!detailView && level >= 3) drawBatch(regionalSecondary, "#b8c2b4", 0.72 / state.scale);
+    if (!detailView && level >= 5) drawBatch(regionalMinor, "#91aaa1", 0.6 / state.scale);
+    if (!detailView) drawBatch(regionalMajor, "#ddd8ba", 1.3 / state.scale);
+    if (detailView) {
+      drawBatch(streamed.major, '#ddd8ba', 1.35 / state.scale);
+      drawBatch(streamed.secondary, '#b8c2b4', 0.82 / state.scale);
+      if (level>=5) drawBatch(streamed.minor, '#91aaa1', 0.48 / state.scale);
+      if (level>=5) drawBatch(streamed.buildings, '#b4b7ad', 0.55 / state.scale);
+    }
     if (state.scale > 0.12) {
       if (state.scale > 0.42) drawBatch(minor, "#91aaa1", 0.48 / state.scale);
       drawBatch(secondary, "#b8c2b4", 0.82 / state.scale);
@@ -238,17 +269,22 @@ export function createRenderer({
         h,
       ],
     ];
-    const candidates = [...labels, ...(mapData.pois || []).filter(poi => poi.name === state.activeLabel)]
-      .map((label) => {
-        const x = w / 2 + state.offsetX + label.point[0] * state.scale,
-          y = h / 2 + state.offsetY + label.point[1] * state.scale;
-        const threshold =
-          label.name === state.activeLabel ? 0
+    function labelThreshold(label) {
+      return label.name === state.activeLabel ? 0
             : majorPlaces.has(label.name) ? 1
             : label.category === "place"
               ? (label.id.startsWith("node/") ? 3 : regionalNames.has(label.name) ? 1.5 : 2.5)
               : label.category === "landmark" ? 5
               : label.category === "street" ? 7 : 9;
+    }
+    const candidates = [...labels, ...(mapData.pois || []).filter(poi => poi.name === state.activeLabel)]
+      .filter(label => level >= labelThreshold(label) &&
+        label.point[0]>=visibleRect[0] && label.point[0]<=visibleRect[2] &&
+        label.point[1]>=visibleRect[1] && label.point[1]<=visibleRect[3])
+      .map((label) => {
+        const x = w / 2 + state.offsetX + label.point[0] * state.scale,
+          y = h / 2 + state.offsetY + label.point[1] * state.scale;
+        const threshold = labelThreshold(label);
         return {
           label,
           x,
@@ -349,7 +385,7 @@ export function createRenderer({
     }
     backedText("© OPENSTREETMAP CONTRIBUTORS / ODbL", 12, 19);
     const titleY = h - (state.suggestions.length ? 94 + state.suggestions.length * 16 : 84) - 10;
-    backedText("CARDIFF + VALE  //  OSM EXTRACT", 12, titleY);
+    backedText("CARDIFF + VALE  //  OSM EXTRACT" + (mapData.detailError ? "  |  DETAIL UNAVAILABLE - RELOAD TO RETRY" : mapData.detailLoading ? "  |  LOADING MAP DETAIL" : ""), 12, titleY);
     const currentZoomLevel = Math.round(zoomLevel(state));
     ctx.textAlign = "right";
     backedText(

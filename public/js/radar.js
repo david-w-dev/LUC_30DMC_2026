@@ -29,7 +29,7 @@ export function createRadar({state, screen, pois, draw}) {
     scan.page = Math.max(0, Math.min(pages - 1, scan.page));
     state.suggestions = scan.revealed.slice(scan.page * 4, scan.page * 4 + 4);
     state.selectedIndex = state.suggestions.length ? Math.max(0, Math.min(state.selectedIndex, state.suggestions.length - 1)) : -1;
-    state.responseText = `${scan.scanning ? 'SCANNING' : 'DETECTED'}: ${scan.revealed.length} ${scan.category.toUpperCase()} IN VIEW (OSM SAMPLE)` +
+    state.responseText = `${scan.scanning ? 'SCANNING' : 'DETECTED'}: ${scan.revealed.length} ${scan.category.toUpperCase()} IN VIEW (MAPPED OSM)` +
       (pages > 1 ? ` - PAGE ${scan.page + 1}/${pages} - RADAR NEXT / PREV` : '') +
       (!scan.scanning && !scan.revealed.length ? ' - TRY ZOOMING OUT OR MOVING' : '');
   }

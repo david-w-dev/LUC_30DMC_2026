@@ -1,10 +1,11 @@
-async function loadDataset(path) {
-  const response = await fetch(new URL(path, import.meta.url));
+export async function loadDataset(path) {
+  const url = new URL(path, import.meta.url);
+  const response = await fetch(url);
   if (!response.ok)
     throw new Error(`Map data failed to load (${response.status})`);
   const manifest = await response.json();
   const parts = await Promise.all(manifest.chunks.map(async name => {
-    const chunk = await fetch(new URL('../data/' + name, import.meta.url));
+    const chunk = await fetch(new URL(name, url));
     if (!chunk.ok) throw new Error(`Map chunk failed to load (${chunk.status})`);
     return chunk.text();
   }));
@@ -14,11 +15,15 @@ async function loadDataset(path) {
 }
 
 export async function loadMapData() {
-  const [mapData, regionalData, poiData] = await Promise.all([
-    loadDataset("../data/cardiff-map.json?v=20261030-zoomfix"),
-    loadDataset("../data/regional-map.json?v=20261030-zoomfix"),
-    fetch(new URL("../data/pois.json?v=20261030-zoomfix", import.meta.url)).then(response => {
+  const [mapData, regionalData, poiData, detailManifest] = await Promise.all([
+    loadDataset("../data/cardiff-map.json?v=20261030-full"),
+    loadDataset("../data/regional-map.json?v=20261030-full"),
+    fetch(new URL("../data/pois.json?v=20261030-full", import.meta.url)).then(response => {
       if (!response.ok) throw new Error("POI data failed to load");
+      return response.json();
+    }),
+    fetch(new URL('../data/detail-manifest.json?v=20261030-full', import.meta.url)).then(response=>{
+      if (!response.ok) throw new Error('Map coverage manifest failed to load');
       return response.json();
     }),
   ]);
@@ -37,5 +42,5 @@ export async function loadMapData() {
       cy,
     }),
   );
-  return { mapData, regionalData };
+  return { mapData, regionalData, detailManifest };
 }
